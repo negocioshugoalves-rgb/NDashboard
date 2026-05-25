@@ -329,7 +329,7 @@
   </style>
 </head>
 <body>
-  <a class="portal-back" href="../index.html">Voltar ao portal</a>
+  <a class="portal-back" href="../portal_dashboards.html">Voltar ao portal</a>
   <main class="app">
     <header>
       <div class="title-row">
@@ -765,9 +765,36 @@
       els.status.textContent = `Arquivo carregado: ${rankingRows.length + visitedRows.length + labRows.length} linhas lidas`;
     }
 
+    async function askUploadPassword() {
+      const password = window.prompt("Digite a senha para importar dados:");
+      if (!password) return false;
+
+      try {
+        const response = await fetch("/api/check-upload-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ password })
+        });
+
+        return response.ok;
+      } catch {
+        return false;
+      }
+    }
+
     async function handleUpload(event) {
       const file = event.target.files?.[0];
       if (!file) return;
+
+      const allowed = await askUploadPassword();
+      if (!allowed) {
+        alert("Senha incorreta ou upload cancelado.");
+        event.target.value = "";
+        return;
+      }
+
       if (!window.XLSX) {
         els.status.textContent = "Leitor de Excel nao carregado";
         return;
