@@ -29,28 +29,42 @@
       color: var(--text);
     }
 
+    /* ── Topbar com botão voltar ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(247, 250, 252, 0.96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 8px 22px;
+    }
     .portal-back {
-      position: fixed;
-      top: 12px;
-      left: 12px;
-      z-index: 20;
-      min-height: 34px;
       display: inline-flex;
       align-items: center;
-      padding: 0 11px;
+      gap: 6px;
+      min-height: 34px;
+      padding: 0 12px;
       border: 1px solid var(--line);
       border-radius: 6px;
-      background: rgba(255, 255, 255, .94);
+      background: #fff;
       color: var(--teal);
       text-decoration: none;
       font-size: 12px;
       font-weight: 750;
-      box-shadow: 0 10px 24px rgba(15, 23, 42, .12);
+      box-shadow: 0 1px 4px rgba(15,23,42,.08);
+      white-space: nowrap;
+      transition: background .15s, color .15s;
     }
-
     .portal-back:hover {
+      background: var(--soft-teal);
       color: var(--text);
     }
+    .portal-back svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .topbar-title { font-size: 13px; font-weight: 700; color: var(--text); }
 
     .app {
       width: min(1440px, 100%);
@@ -326,10 +340,81 @@
       .cards, .grid-2, .grid-3, .filters, .upload { grid-template-columns: 1fr; }
       .app { padding: 14px; }
     }
+
+    /* ── Histórico de uploads ── */
+    .upload-history {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .upload-history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+    }
+    .upload-history-header h3 {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .history-empty { padding: 14px; color: var(--muted); font-size: 12px; }
+    .history-list { list-style: none; margin: 0; padding: 0; }
+    .history-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      transition: background .12s;
+    }
+    .history-item:last-child { border-bottom: 0; }
+    .history-item.is-active { background: var(--soft-teal); }
+    .history-item.is-inactive { opacity: .6; }
+    .history-info { display: grid; gap: 2px; }
+    .history-name {
+      font-size: 13px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .history-badge {
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 999px;
+      background: var(--teal); color: #fff;
+    }
+    .history-badge.inactive { background: #e2e8f0; color: var(--muted); }
+    .history-meta { font-size: 11px; color: var(--muted); }
+    .history-actions { display: flex; gap: 6px; }
+    .btn-sm {
+      min-height: 28px; display: inline-flex; align-items: center;
+      padding: 0 10px; border-radius: 5px; font-size: 11px; font-weight: 700;
+      border: 1px solid var(--line); cursor: pointer; background: #fff;
+      color: var(--text); white-space: nowrap; transition: background .12s, color .12s;
+    }
+    .btn-sm:hover { background: var(--soft-teal); color: var(--teal); border-color: var(--teal); }
+    .btn-sm.activate { background: var(--teal); color: #fff; border-color: var(--teal); }
+    .btn-sm.activate:hover { background: #0d6460; }
+    .btn-sm.deactivate { background: #fff3cd; color: #92400e; border-color: #fcd34d; }
+    .btn-sm.delete { color: var(--red); border-color: #fecaca; }
+    .btn-sm.delete:hover { background: #fef2f2; }
   </style>
 </head>
 <body>
-  <a class="portal-back" href="../portal_dashboards.html">Voltar ao portal</a>
+  <div class="topbar">
+    <a class="portal-back" href="../index.html">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 12L6 8l4-4"/>
+      </svg>
+      Voltar ao Portal
+    </a>
+    <span class="topbar-title">Ranking Solicitantes e Visitas 2026</span>
+  </div>
   <main class="app">
     <header>
       <div class="title-row">
@@ -348,6 +433,16 @@
         </label>
         <div class="status">Abas esperadas: Ranking_2026, Visitados_2026, Laboratorio_2026</div>
       </section>
+
+      <!-- Histórico de uploads -->
+      <div class="upload-history" id="uploadHistory">
+        <div class="upload-history-header">
+          <h3>Histórico de uploads</h3>
+          <span id="activeUploadLabel" style="font-size:11px;color:var(--muted);">Nenhum upload ativo</span>
+        </div>
+        <div class="history-empty" id="historyEmpty">Nenhum upload realizado ainda. Importe um arquivo Excel acima.</div>
+        <ul class="history-list" id="historyList"></ul>
+      </div>
 
       <section class="filters">
         <label class="filter">
@@ -497,11 +592,8 @@
 
   <script src="xlsx.full.min.js"></script>
   <script>
-    const state = {
-      ranking: [],
-      visited: [],
-      lab: []
-    };
+    // ── Estado ──
+    const state = { ranking: [], visited: [], lab: [] };
 
     const els = {
       search: document.querySelector("#searchFilter"),
@@ -512,25 +604,100 @@
       status: document.querySelector("#status")
     };
 
-    const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-    const monthMap = { jan: 1, janeiro: 1, fev: 2, fevereiro: 2, mar: 3, marco: 3, março: 3, abr: 4, abril: 4, mai: 5, maio: 5, jun: 6, junho: 6, jul: 7, julho: 7, ago: 8, agosto: 8, set: 9, setembro: 9, out: 10, outubro: 10, nov: 11, novembro: 11, dez: 12, dezembro: 12 };
+    const monthNames = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+    const monthMap = { jan:1,janeiro:1,fev:2,fevereiro:2,mar:3,marco:3,março:3,abr:4,abril:4,mai:5,maio:5,jun:6,junho:6,jul:7,julho:7,ago:8,agosto:8,set:9,setembro:9,out:10,outubro:10,nov:11,novembro:11,dez:12,dezembro:12 };
 
+    // ── Sistema de Histórico de Uploads ──
+    const STORAGE_KEY = "ndash_ranking_uploads";
+
+    function loadUploadHistory() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch { return []; }
+    }
+    function saveUploadHistory(history) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(history)); } catch {}
+    }
+    function generateUploadId() {
+      return "upl_" + Date.now() + "_" + Math.random().toString(36).slice(2,7);
+    }
+    function getActiveUpload() {
+      return loadUploadHistory().find(u => u.active) || null;
+    }
+    function addUploadToHistory(name, parsedState, summary) {
+      const history = loadUploadHistory();
+      history.forEach(u => u.active = false);
+      const entry = { id: generateUploadId(), name, date: new Date().toLocaleString("pt-BR"), summary, parsedState, active: true };
+      history.unshift(entry);
+      saveUploadHistory(history);
+      return entry;
+    }
+    function activateUpload(id) {
+      const history = loadUploadHistory();
+      history.forEach(u => u.active = (u.id === id));
+      saveUploadHistory(history);
+      const entry = history.find(u => u.id === id);
+      if (entry) applyParsedState(entry.parsedState, entry.name);
+      renderHistory();
+    }
+    function deactivateUpload(id) {
+      const history = loadUploadHistory();
+      history.forEach(u => { if (u.id === id) u.active = false; });
+      saveUploadHistory(history);
+      state.ranking = []; state.visited = []; state.lab = [];
+      refreshFilters(); render();
+      els.status.textContent = "Upload desativado. Dashboard sem dados.";
+      renderHistory();
+    }
+    function deleteUpload(id) {
+      let history = loadUploadHistory();
+      const wasActive = history.find(u => u.id === id)?.active;
+      history = history.filter(u => u.id !== id);
+      saveUploadHistory(history);
+      if (wasActive) { state.ranking=[]; state.visited=[]; state.lab=[]; refreshFilters(); render(); els.status.textContent="Upload ativo removido."; }
+      renderHistory();
+    }
+    function confirmDelete(id) {
+      if (confirm("Excluir este upload do histórico? Esta ação não pode ser desfeita.")) deleteUpload(id);
+    }
+    function renderHistory() {
+      const history = loadUploadHistory();
+      const active = history.find(u => u.active);
+      document.querySelector("#activeUploadLabel").textContent = active ? `Ativo: ${active.name} (ID: ${active.id})` : "Nenhum upload ativo";
+      if (history.length === 0) {
+        document.querySelector("#historyEmpty").style.display = "block";
+        document.querySelector("#historyList").innerHTML = "";
+        return;
+      }
+      document.querySelector("#historyEmpty").style.display = "none";
+      document.querySelector("#historyList").innerHTML = history.map(u => `
+        <li class="history-item ${u.active ? "is-active" : "is-inactive"}" data-id="${u.id}">
+          <div class="history-info">
+            <div class="history-name">
+              ${escapeHtml(u.name)}
+              <span class="history-badge ${u.active ? "" : "inactive"}">${u.active ? "ATIVO" : "INATIVO"}</span>
+            </div>
+            <div class="history-meta">ID: ${u.id} &nbsp;·&nbsp; ${u.date} &nbsp;·&nbsp; ${escapeHtml(u.summary)}</div>
+          </div>
+          <div class="history-actions">
+            ${!u.active
+              ? `<button class="btn-sm activate" onclick="activateUpload('${u.id}')">Ativar</button>`
+              : `<button class="btn-sm deactivate" onclick="deactivateUpload('${u.id}')">Desativar</button>`}
+            <button class="btn-sm delete" onclick="confirmDelete('${u.id}')">Excluir</button>
+          </div>
+        </li>
+      `).join("");
+    }
+
+    // ── Helpers ──
     function normalize(value) {
-      return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     }
-
     function parseNumber(value) {
-      return Number(String(value ?? "").replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "")) || 0;
+      return Number(String(value ?? "").replace(/\./g,"").replace(",",".").replace(/[^\d.-]/g,"")) || 0;
     }
-
-    function formatNumber(value) {
-      return Math.round(value).toLocaleString("pt-BR");
-    }
-
+    function formatNumber(value) { return Math.round(value).toLocaleString("pt-BR"); }
     function escapeHtml(value) {
-      return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+      return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
     }
-
     function getField(row, names) {
       const entries = Object.entries(row);
       for (const name of names) {
@@ -540,7 +707,6 @@
       }
       return "";
     }
-
     function monthKey(value, yearValue) {
       if (value instanceof Date) return `${monthNames[value.getMonth()]}/${value.getFullYear()}`;
       if (typeof value === "number" && value > 25000) {
@@ -550,254 +716,227 @@
       const text = String(value || "").trim();
       const year = String(yearValue || "").trim();
       const asNumber = Number(text);
-      if (asNumber >= 1 && asNumber <= 12 && year) return `${monthNames[asNumber - 1]}/${year}`;
-      const clean = normalize(text).replace(/[^a-z0-9/]/g, "");
+      if (asNumber >= 1 && asNumber <= 12 && year) return `${monthNames[asNumber-1]}/${year}`;
+      const clean = normalize(text).replace(/[^a-z0-9/]/g,"");
       if (clean.includes("/")) {
         const [m, y] = clean.split("/");
-        const monthNumber = monthMap[m] || Number(m);
-        if (monthNumber && y) return `${monthNames[monthNumber - 1]}/20${String(y).slice(-2)}`;
+        const mn = monthMap[m] || Number(m);
+        if (mn && y) return `${monthNames[mn-1]}/20${String(y).slice(-2)}`;
       }
-      const monthNumber = monthMap[clean] || Number(clean);
-      if (monthNumber && year) return `${monthNames[monthNumber - 1]}/${year}`;
+      const mn = monthMap[clean] || Number(clean);
+      if (mn && year) return `${monthNames[mn-1]}/${year}`;
       return text;
     }
-
     function monthSort(key) {
       const [m, y] = String(key).split("/");
       return Number(y || 0) * 100 + (monthMap[normalize(m)] || 0);
     }
-
     function allMonths() {
       return [...new Set([
-        ...state.ranking.map((item) => item.month),
-        ...state.visited.map((item) => item.visitMonth),
-        ...state.lab.map((item) => item.month)
-      ].filter(Boolean))].sort((a, b) => monthSort(a) - monthSort(b));
+        ...state.ranking.map(i => i.month),
+        ...state.visited.map(i => i.visitMonth),
+        ...state.lab.map(i => i.month)
+      ].filter(Boolean))].sort((a,b) => monthSort(a) - monthSort(b));
     }
-
     function populateSelect(select, values, allLabel = "Todos") {
       const current = select.value;
-      const unique = [...new Set(values.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), "pt-BR"));
-      select.innerHTML = [`<option value="">${allLabel}</option>`, ...unique.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`)].join("");
+      const unique = [...new Set(values.filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b),"pt-BR"));
+      select.innerHTML = [`<option value="">${allLabel}</option>`, ...unique.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`)].join("");
       select.value = unique.includes(current) ? current : "";
     }
-
     function refreshFilters() {
       populateSelect(els.month, allMonths(), "Todos os meses");
-      populateSelect(els.rep, state.visited.map((item) => item.representative), "Todos");
-      populateSelect(els.specialty, state.visited.map((item) => item.specialty), "Todas");
+      populateSelect(els.rep, state.visited.map(i => i.representative), "Todos");
+      populateSelect(els.specialty, state.visited.map(i => i.specialty), "Todas");
     }
-
     function matchesName(value) {
       return !els.search.value || normalize(value).includes(normalize(els.search.value));
     }
-
     function scopedDoctorSet() {
       if (!els.rep.value && !els.specialty.value) return null;
       return new Set(state.visited
-        .filter((item) =>
-          (!els.rep.value || item.representative === els.rep.value) &&
-          (!els.specialty.value || item.specialty === els.specialty.value)
-        )
-        .map((item) => normalize(item.doctor)));
+        .filter(i => (!els.rep.value || i.representative === els.rep.value) && (!els.specialty.value || i.specialty === els.specialty.value))
+        .map(i => normalize(i.doctor)));
     }
-
-    function matchesDoctorScope(name, scope) {
-      return !scope || scope.has(normalize(name));
-    }
-
+    function matchesDoctorScope(name, scope) { return !scope || scope.has(normalize(name)); }
     function filteredRanking() {
       const scope = scopedDoctorSet();
-      return state.ranking.filter((item) =>
-        (!els.month.value || item.month === els.month.value) &&
-        matchesName(item.solicitante) &&
-        matchesDoctorScope(item.solicitante, scope)
-      );
+      return state.ranking.filter(i => (!els.month.value || i.month === els.month.value) && matchesName(i.solicitante) && matchesDoctorScope(i.solicitante, scope));
     }
-
     function filteredVisited() {
-      return state.visited.filter((item) =>
-        (!els.month.value || item.visitMonth === els.month.value || item.productionMonth === els.month.value) &&
-        (!els.rep.value || item.representative === els.rep.value) &&
-        (!els.specialty.value || item.specialty === els.specialty.value) &&
-        matchesName(item.doctor)
+      return state.visited.filter(i =>
+        (!els.month.value || i.visitMonth === els.month.value || i.productionMonth === els.month.value) &&
+        (!els.rep.value || i.representative === els.rep.value) &&
+        (!els.specialty.value || i.specialty === els.specialty.value) &&
+        matchesName(i.doctor)
       );
     }
-
     function filteredLab() {
       const scope = scopedDoctorSet();
-      return state.lab.filter((item) =>
-        (!els.month.value || item.month === els.month.value) &&
-        matchesName(item.doctor) &&
-        matchesDoctorScope(item.doctor, scope)
-      );
+      return state.lab.filter(i => (!els.month.value || i.month === els.month.value) && matchesName(i.doctor) && matchesDoctorScope(i.doctor, scope));
     }
-
     function groupSum(rows, labelKey, valueKey) {
       const map = new Map();
-      rows.forEach((item) => map.set(item[labelKey], (map.get(item[labelKey]) || 0) + parseNumber(item[valueKey])));
-      return [...map.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+      rows.forEach(i => map.set(i[labelKey], (map.get(i[labelKey]) || 0) + parseNumber(i[valueKey])));
+      return [...map.entries()].map(([label,value]) => ({label,value})).sort((a,b) => b.value - a.value);
     }
-
     function renderBars(id, rows, colorClass = "", limit = 10) {
       const target = document.querySelector(`#${id}`);
       const top = rows.slice(0, limit);
-      const max = Math.max(1, ...top.map((item) => item.value));
-      target.innerHTML = top.length ? top.map((item) => `
-        <div class="bar-row" title="${escapeHtml(item.label)}">
-          <div class="bar-label">${escapeHtml(item.label)}</div>
-          <div class="track"><div class="fill ${colorClass}" style="width:${Math.max(4, (item.value / max) * 100)}%"></div></div>
-          <div class="value">${formatNumber(item.value)}</div>
+      const max = Math.max(1, ...top.map(i => i.value));
+      target.innerHTML = top.length ? top.map(i => `
+        <div class="bar-row" title="${escapeHtml(i.label)}">
+          <div class="bar-label">${escapeHtml(i.label)}</div>
+          <div class="track"><div class="fill ${colorClass}" style="width:${Math.max(4,(i.value/max)*100)}%"></div></div>
+          <div class="value">${formatNumber(i.value)}</div>
         </div>
       `).join("") : `<div class="muted">Sem dados para os filtros.</div>`;
     }
-
     function renderTables(ranking, visited, lab) {
-      document.querySelector("#rankingTable").innerHTML = ranking.map((item) => `
-        <tr><td>${escapeHtml(item.month)}</td><td>${escapeHtml(item.solicitante)}</td><td>${escapeHtml(item.modalidade)}</td><td>${formatNumber(item.quantidade)}</td></tr>
-      `).join("");
-      document.querySelector("#visitedTable").innerHTML = visited.map((item) => `
-        <tr><td>${escapeHtml(item.visitMonth)}</td><td>${escapeHtml(item.doctor)}</td><td>${escapeHtml(item.representative)}</td><td>${escapeHtml(item.specialty)}</td><td>${formatNumber(item.cintilografia)}</td><td>${formatNumber(item.densitometria)}</td><td>${formatNumber(item.mamografia)}</td><td>${formatNumber(item.ressonancia)}</td><td>${formatNumber(item.tomografia)}</td><td>${formatNumber(item.ultrassom)}</td><td>${formatNumber(item.total)}</td></tr>
-      `).join("");
-      document.querySelector("#labTable").innerHTML = lab.map((item) => `
-        <tr><td>${escapeHtml(item.month)}</td><td>${escapeHtml(item.doctor)}</td><td>${formatNumber(item.production)}</td></tr>
-      `).join("");
+      document.querySelector("#rankingTable").innerHTML = ranking.map(i =>
+        `<tr><td>${escapeHtml(i.month)}</td><td>${escapeHtml(i.solicitante)}</td><td>${escapeHtml(i.modalidade)}</td><td>${formatNumber(i.quantidade)}</td></tr>`
+      ).join("");
+      document.querySelector("#visitedTable").innerHTML = visited.map(i =>
+        `<tr><td>${escapeHtml(i.visitMonth)}</td><td>${escapeHtml(i.doctor)}</td><td>${escapeHtml(i.representative)}</td><td>${escapeHtml(i.specialty)}</td><td>${formatNumber(i.cintilografia)}</td><td>${formatNumber(i.densitometria)}</td><td>${formatNumber(i.mamografia)}</td><td>${formatNumber(i.ressonancia)}</td><td>${formatNumber(i.tomografia)}</td><td>${formatNumber(i.ultrassom)}</td><td>${formatNumber(i.total)}</td></tr>`
+      ).join("");
+      document.querySelector("#labTable").innerHTML = lab.map(i =>
+        `<tr><td>${escapeHtml(i.month)}</td><td>${escapeHtml(i.doctor)}</td><td>${formatNumber(i.production)}</td></tr>`
+      ).join("");
     }
-
     function render() {
       const ranking = filteredRanking();
       const visited = filteredVisited();
       const lab = filteredLab();
-      const totalRequests = ranking.reduce((sum, item) => sum + item.quantidade, 0);
-      const imageProduction = visited.reduce((sum, item) => sum + item.total, 0);
-      const labProduction = lab.reduce((sum, item) => sum + item.production, 0);
-
+      const totalRequests = ranking.reduce((s,i) => s + i.quantidade, 0);
+      const imageProduction = visited.reduce((s,i) => s + i.total, 0);
+      const labProduction = lab.reduce((s,i) => s + i.production, 0);
       document.querySelector("#totalRequests").textContent = formatNumber(totalRequests);
-      document.querySelector("#visitedDoctors").textContent = formatNumber(new Set(visited.map((item) => item.doctor)).size);
+      document.querySelector("#visitedDoctors").textContent = formatNumber(new Set(visited.map(i => i.doctor)).size);
       document.querySelector("#imageProduction").textContent = formatNumber(imageProduction);
       document.querySelector("#labProduction").textContent = formatNumber(labProduction);
       document.querySelector("#requestMonths").textContent = els.month.value || "Todos os meses";
       document.querySelector("#visitedReps").textContent = els.rep.value || "Representantes filtrados";
-
-      const rankingBySolicitante = groupSum(ranking, "solicitante", "quantidade");
-      const rankingByModality = groupSum(ranking, "modalidade", "quantidade");
-      const visitedByMonth = groupSum(visited, "productionMonth", "total").sort((a, b) => monthSort(a.label) - monthSort(b.label));
-      const labByMonth = groupSum(lab, "month", "production").sort((a, b) => monthSort(a.label) - monthSort(b.label));
-
+      const rankingBySolicitante = groupSum(ranking,"solicitante","quantidade");
+      const rankingByModality = groupSum(ranking,"modalidade","quantidade");
+      const visitedByMonth = groupSum(visited,"productionMonth","total").sort((a,b) => monthSort(a.label) - monthSort(b.label));
+      const labByMonth = groupSum(lab,"month","production").sort((a,b) => monthSort(a.label) - monthSort(b.label));
       renderBars("overallSolicitanteBars", rankingBySolicitante);
       renderBars("overallModalityBars", rankingByModality, "amber");
       renderBars("visitedMonthBars", visitedByMonth, "blue", 12);
       renderBars("labMonthBars", labByMonth, "", 12);
       renderBars("solicitanteBars", rankingBySolicitante);
       renderBars("modalityBars", rankingByModality, "amber");
-      renderBars("repBars", groupSum(visited, "representative", "total"), "blue");
-      renderBars("specialtyBars", groupSum(visited, "specialty", "total"), "amber");
-      renderBars("visitedDoctorBars", groupSum(visited, "doctor", "total"), "blue");
+      renderBars("repBars", groupSum(visited,"representative","total"), "blue");
+      renderBars("specialtyBars", groupSum(visited,"specialty","total"), "amber");
+      renderBars("visitedDoctorBars", groupSum(visited,"doctor","total"), "blue");
       renderBars("labBars", labByMonth, "", 12);
-      renderBars("labDoctorBars", groupSum(lab, "doctor", "production"));
+      renderBars("labDoctorBars", groupSum(lab,"doctor","production"));
       renderTables(ranking, visited, lab);
     }
-
     function sheetRows(workbook, names) {
-      const sheetName = workbook.SheetNames.find((name) => names.map(normalize).includes(normalize(name))) || names.find((name) => workbook.SheetNames.includes(name));
+      const sheetName = workbook.SheetNames.find(n => names.map(normalize).includes(normalize(n))) || names.find(n => workbook.SheetNames.includes(n));
       if (!sheetName) return [];
-      return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+      return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval:""});
     }
-
-    function loadWorkbook(workbook) {
-      const rankingRows = sheetRows(workbook, ["Ranking_2026", "Ranking 2026"]);
-      const visitedRows = sheetRows(workbook, ["Visitados_2026", "Comp_Visitados_2026", "Comp Medicos Visitados 2026"]);
-      const labRows = sheetRows(workbook, ["Laboratorio_2026", "Prod_Lab_2026", "Prod Lab 2026"]);
-
-      state.ranking = rankingRows.map((row) => ({
-        month: monthKey(getField(row, ["Mes", "Mês"]), getField(row, ["Ano"])),
-        solicitante: String(getField(row, ["Solicitante", "Medico Solicitante", "Médico Solicitante"]) || "").trim(),
-        modalidade: String(getField(row, ["Modalidade"]) || "").trim(),
-        quantidade: parseNumber(getField(row, ["Quantidade", "QTD", "Qtd"]))
-      })).filter((item) => item.month && item.solicitante && item.modalidade);
-
-      state.visited = visitedRows.map((row) => {
-        const total = parseNumber(getField(row, ["Total", "TOTAL"]));
+    function parsedStateFromWorkbook(workbook) {
+      const rankingRows = sheetRows(workbook, ["Ranking_2026","Ranking 2026"]);
+      const visitedRows = sheetRows(workbook, ["Visitados_2026","Comp_Visitados_2026","Comp Medicos Visitados 2026"]);
+      const labRows = sheetRows(workbook, ["Laboratorio_2026","Prod_Lab_2026","Prod Lab 2026"]);
+      const ranking = rankingRows.map(row => ({
+        month: monthKey(getField(row,["Mes","Mês"]), getField(row,["Ano"])),
+        solicitante: String(getField(row,["Solicitante","Medico Solicitante","Médico Solicitante"]) || "").trim(),
+        modalidade: String(getField(row,["Modalidade"]) || "").trim(),
+        quantidade: parseNumber(getField(row,["Quantidade","QTD","Qtd"]))
+      })).filter(i => i.month && i.solicitante && i.modalidade);
+      const visited = visitedRows.map(row => {
+        const total = parseNumber(getField(row,["Total","TOTAL"]));
         const item = {
-          visitMonth: monthKey(getField(row, ["Mes Visita", "Mês Visita", "Visita"]), getField(row, ["Ano"])),
-          productionMonth: monthKey(getField(row, ["Mes Producao", "Mês Produção", "MÊS DA PRODUÇÃO"]), getField(row, ["Ano"])),
-          doctor: String(getField(row, ["Medico Solicitante", "Médico Solicitante", "Solicitante"]) || "").trim(),
-          representative: String(getField(row, ["Representante"]) || "").trim(),
-          specialty: String(getField(row, ["Especialidade", "Especialidades"]) || "").trim(),
-          cintilografia: parseNumber(getField(row, ["Cintilografia"])),
-          densitometria: parseNumber(getField(row, ["Densitometria"])),
-          mamografia: parseNumber(getField(row, ["Mamografia"])),
-          ressonancia: parseNumber(getField(row, ["Ressonancia", "Ressonância"])),
-          tomografia: parseNumber(getField(row, ["Tomografia"])),
-          ultrassom: parseNumber(getField(row, ["Ultrassom"])),
+          visitMonth: monthKey(getField(row,["Mes Visita","Mês Visita","Visita"]), getField(row,["Ano"])),
+          productionMonth: monthKey(getField(row,["Mes Producao","Mês Produção","MÊS DA PRODUÇÃO"]), getField(row,["Ano"])),
+          doctor: String(getField(row,["Medico Solicitante","Médico Solicitante","Solicitante"]) || "").trim(),
+          representative: String(getField(row,["Representante"]) || "").trim(),
+          specialty: String(getField(row,["Especialidade","Especialidades"]) || "").trim(),
+          cintilografia: parseNumber(getField(row,["Cintilografia"])),
+          densitometria: parseNumber(getField(row,["Densitometria"])),
+          mamografia: parseNumber(getField(row,["Mamografia"])),
+          ressonancia: parseNumber(getField(row,["Ressonancia","Ressonância"])),
+          tomografia: parseNumber(getField(row,["Tomografia"])),
+          ultrassom: parseNumber(getField(row,["Ultrassom"])),
           total
         };
         item.total = item.total || item.cintilografia + item.densitometria + item.mamografia + item.ressonancia + item.tomografia + item.ultrassom;
         return item;
-      }).filter((item) => item.visitMonth && item.doctor);
-
-      state.lab = labRows.map((row) => ({
-        month: monthKey(getField(row, ["Mes Producao", "Mês Produção", "MÊS DA PRODUÇÃO", "Mes"]), getField(row, ["Ano"])),
-        doctor: String(getField(row, ["Medico Solicitante", "Médico Solicitante", "Solicitante"]) || "").trim(),
-        production: parseNumber(getField(row, ["Producao", "Produção", "PRODUÇÃO"]))
-      })).filter((item) => item.month && item.doctor);
-
+      }).filter(i => i.visitMonth && i.doctor);
+      const lab = labRows.map(row => ({
+        month: monthKey(getField(row,["Mes Producao","Mês Produção","MÊS DA PRODUÇÃO","Mes"]), getField(row,["Ano"])),
+        doctor: String(getField(row,["Medico Solicitante","Médico Solicitante","Solicitante"]) || "").trim(),
+        production: parseNumber(getField(row,["Producao","Produção","PRODUÇÃO"]))
+      })).filter(i => i.month && i.doctor);
+      return { ranking, visited, lab, totals: { ranking: rankingRows.length, visited: visitedRows.length, lab: labRows.length } };
+    }
+    function applyParsedState(parsed, name) {
+      state.ranking = parsed.ranking;
+      state.visited = parsed.visited;
+      state.lab = parsed.lab;
       refreshFilters();
       render();
-      els.status.textContent = `Arquivo carregado: ${rankingRows.length + visitedRows.length + labRows.length} linhas lidas`;
+      const total = parsed.ranking.length + parsed.visited.length + parsed.lab.length;
+      els.status.textContent = `Upload ativo: ${name} — ${total} registros carregados`;
     }
 
     async function askUploadPassword() {
       const password = window.prompt("Digite a senha para importar dados:");
       if (!password) return false;
-
       try {
         const response = await fetch("/api/check-upload-password", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ password })
         });
-
         return response.ok;
-      } catch {
-        return false;
-      }
+      } catch { return false; }
     }
 
     async function handleUpload(event) {
       const file = event.target.files?.[0];
       if (!file) return;
-
       const allowed = await askUploadPassword();
       if (!allowed) {
         alert("Senha incorreta ou upload cancelado.");
         event.target.value = "";
         return;
       }
-
-      if (!window.XLSX) {
-        els.status.textContent = "Leitor de Excel nao carregado";
-        return;
-      }
+      if (!window.XLSX) { els.status.textContent = "Leitor de Excel nao carregado"; return; }
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
-      loadWorkbook(workbook);
+      const parsed = parsedStateFromWorkbook(workbook);
+      const summary = `Ranking: ${parsed.totals.ranking} linhas · Visitados: ${parsed.totals.visited} linhas · Lab: ${parsed.totals.lab} linhas`;
+      const entry = addUploadToHistory(file.name, parsed, summary);
+      applyParsedState(parsed, file.name);
+      els.status.innerHTML = `<strong>${file.name}</strong> importado. Upload ID: <strong>${entry.id}</strong>`;
+      renderHistory();
     }
 
-    document.querySelectorAll(".tab").forEach((button) => {
-      button.addEventListener("click", () => {
-        document.querySelectorAll(".tab").forEach((item) => item.classList.toggle("active", item === button));
-        document.querySelectorAll(".content").forEach((section) => section.classList.toggle("active", section.id === `tab-${button.dataset.tab}`));
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t === btn));
+        document.querySelectorAll(".content").forEach(s => s.classList.toggle("active", s.id === `tab-${btn.dataset.tab}`));
       });
     });
 
-    [els.search, els.month, els.rep, els.specialty].forEach((control) => control.addEventListener("input", render));
-    [els.month, els.rep, els.specialty].forEach((control) => control.addEventListener("change", render));
+    [els.search, els.month, els.rep, els.specialty].forEach(c => c.addEventListener("input", render));
+    [els.month, els.rep, els.specialty].forEach(c => c.addEventListener("change", render));
     els.upload.addEventListener("change", handleUpload);
-    refreshFilters();
-    render();
+
+    // ── Inicialização: restaura upload ativo do histórico ──
+    renderHistory();
+    const activeEntry = getActiveUpload();
+    if (activeEntry) {
+      applyParsedState(activeEntry.parsedState, activeEntry.name);
+    } else {
+      refreshFilters();
+      render();
+    }
   </script>
 </body>
 </html>
