@@ -463,7 +463,7 @@
   </style>
 </head>
 <body>
-  <a class="portal-back" href="index.html">Voltar ao portal</a>
+  <a class="portal-back" href="portal_dashboards.html">Voltar ao portal</a>
   <main class="dashboard">
     <header>
       <div class="topline">
@@ -1082,9 +1082,35 @@
       setStatus(`Arquivo carregado: <strong>${validRecords.length}</strong> linhas validas.`);
     }
 
+    async function askUploadPassword() {
+      const password = window.prompt("Digite a senha para importar dados:");
+      if (!password) return false;
+
+      try {
+        const response = await fetch("/api/check-upload-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ password })
+        });
+
+        return response.ok;
+      } catch {
+        return false;
+      }
+    }
+
     async function handleExcelUpload(event) {
       const file = event.target.files?.[0];
       if (!file) return;
+
+      const allowed = await askUploadPassword();
+      if (!allowed) {
+        alert("Senha incorreta ou upload cancelado.");
+        event.target.value = "";
+        return;
+      }
 
       if (!window.XLSX) {
         setStatus("Nao foi possivel carregar o leitor de Excel. Verifique a internet e atualize a pagina.", true);
