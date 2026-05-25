@@ -498,27 +498,9 @@
   <script src="xlsx.full.min.js"></script>
   <script>
     const state = {
-      ranking: [
-        { month: "Jan/2026", solicitante: "Dra. Almeida", modalidade: "Tomografia", quantidade: 184 },
-        { month: "Jan/2026", solicitante: "Dr. Santos", modalidade: "Ultrassom", quantidade: 142 },
-        { month: "Fev/2026", solicitante: "Dra. Almeida", modalidade: "Ressonancia", quantidade: 212 },
-        { month: "Fev/2026", solicitante: "Dra. Costa", modalidade: "Mamografia", quantidade: 96 },
-        { month: "Mar/2026", solicitante: "Dr. Santos", modalidade: "Tomografia", quantidade: 168 },
-        { month: "Mar/2026", solicitante: "Dra. Costa", modalidade: "Ultrassom", quantidade: 121 }
-      ],
-      visited: [
-        { visitMonth: "Jan/2026", productionMonth: "Jan/2026", doctor: "Dra. Almeida", representative: "Renata", specialty: "Cardiologia", cintilografia: 12, densitometria: 24, mamografia: 16, ressonancia: 44, tomografia: 82, ultrassom: 66, total: 244 },
-        { visitMonth: "Fev/2026", productionMonth: "Fev/2026", doctor: "Dr. Santos", representative: "Marcos", specialty: "Ortopedia", cintilografia: 8, densitometria: 12, mamografia: 0, ressonancia: 51, tomografia: 90, ultrassom: 38, total: 199 },
-        { visitMonth: "Mar/2026", productionMonth: "Mar/2026", doctor: "Dra. Costa", representative: "Renata", specialty: "Clinica Medica", cintilografia: 5, densitometria: 18, mamografia: 21, ressonancia: 33, tomografia: 74, ultrassom: 52, total: 203 }
-      ],
-      lab: [
-        { month: "Jan/2026", doctor: "Dra. Almeida", production: 650 },
-        { month: "Fev/2026", doctor: "Dra. Almeida", production: 690 },
-        { month: "Mar/2026", doctor: "Dra. Almeida", production: 720 },
-        { month: "Fev/2026", doctor: "Dr. Santos", production: 670 },
-        { month: "Mar/2026", doctor: "Dr. Santos", production: 640 },
-        { month: "Mar/2026", doctor: "Dra. Costa", production: 600 }
-      ]
+      ranking: [],
+      visited: [],
+      lab: []
     };
 
     const els = {
