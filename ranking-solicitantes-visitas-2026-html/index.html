@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ranking Solicitantes e Visitas 2026</title>
+  <style>
+    :root {
+      --bg: #f7fafc;
+      --panel: #ffffff;
+      --line: #dbe4ee;
+      --text: #132033;
+      --muted: #637083;
+      --teal: #0f766e;
+      --blue: #2563eb;
+      --amber: #d97706;
+      --red: #dc2626;
+      --soft-teal: #ecfdf5;
+      --soft-blue: #eff6ff;
+      --soft-amber: #fffbeb;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .portal-back {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 20;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, .94);
+      color: var(--teal);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 750;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .12);
+    }
+
+    .portal-back:hover {
+      color: var(--text);
+    }
+
+    .app {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    header {
+      display: grid;
+      gap: 14px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .subtitle, .status {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .upload {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .upload input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 8px;
+      background: #fff;
+      font: inherit;
+      font-size: 13px;
+    }
+
+    .model-link {
+      display: inline-block;
+      margin-top: 6px;
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 650;
+      text-decoration: none;
+    }
+
+    .model-link:hover { text-decoration: underline; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.3fr minmax(150px, .8fr) minmax(170px, .8fr) minmax(170px, .8fr);
+      gap: 10px;
+    }
+
+    label.filter {
+      display: grid;
+      gap: 5px;
+      min-height: 62px;
+      padding: 8px 10px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    input[type="search"], select {
+      width: 100%;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: 13px;
+      padding: 0 9px;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid #99f6e4;
+      border-color: var(--teal);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      padding: 0 12px;
+      color: var(--muted);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: var(--teal);
+      color: #fff;
+      border-color: var(--teal);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .card, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .card {
+      min-height: 92px;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .metric {
+      font-size: 25px;
+      font-weight: 760;
+    }
+
+    .chip {
+      width: fit-content;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--soft-teal);
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .content {
+      display: none;
+      gap: 12px;
+    }
+
+    .content.active {
+      display: grid;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .panel {
+      padding: 14px;
+      min-height: 250px;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .bar-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 180px) 1fr 72px;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .bar-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .track {
+      height: 12px;
+      background: #eef2f7;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      min-width: 3px;
+      border-radius: 999px;
+      background: var(--teal);
+    }
+
+    .fill.blue { background: var(--blue); }
+    .fill.amber { background: var(--amber); }
+
+    .value {
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 440px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th, td {
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th:first-child, td:first-child,
+    th:nth-child(2), td:nth-child(2) {
+      text-align: left;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--soft-teal);
+      color: var(--teal);
+      font-weight: 750;
+    }
+
+    .muted { color: var(--muted); }
+
+    @media (max-width: 1100px) {
+      .cards, .grid-2, .grid-3, .filters, .upload { grid-template-columns: 1fr; }
+      .app { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="portal-back" href="../portal_dashboards.html">Voltar ao portal</a>
+  <main class="app">
+    <header>
+      <div class="title-row">
+        <div>
+          <h1>Ranking Solicitantes e Visitas 2026</h1>
+          <div class="subtitle">Visao integrada das tres abas 2026 do relatorio</div>
+        </div>
+        <div class="status" id="status">Base exemplo carregada</div>
+      </div>
+
+      <section class="upload">
+        <label>
+          <span class="label">Importar Excel</span>
+          <input id="excelUpload" type="file" accept=".xlsx,.xls">
+          <a class="model-link" href="modelo_ranking_solicitantes_visitas_2026.xlsx" download>Baixar modelo Excel</a>
+        </label>
+        <div class="status">Abas esperadas: Ranking_2026, Visitados_2026, Laboratorio_2026</div>
+      </section>
+
+      <section class="filters">
+        <label class="filter">
+          <span class="label">Buscar solicitante</span>
+          <input id="searchFilter" type="search" placeholder="Nome do medico ou solicitante">
+        </label>
+        <label class="filter">
+          <span class="label">Mes</span>
+          <select id="monthFilter"></select>
+        </label>
+        <label class="filter">
+          <span class="label">Representante</span>
+          <select id="repFilter"></select>
+        </label>
+        <label class="filter">
+          <span class="label">Especialidade</span>
+          <select id="specialtyFilter"></select>
+        </label>
+      </section>
+
+      <nav class="tabs" aria-label="Abas do dashboard">
+        <button class="tab active" data-tab="geral">Geral</button>
+        <button class="tab" data-tab="ranking">Ranking Solicitantes</button>
+        <button class="tab" data-tab="visitados">Medicos Visitados</button>
+        <button class="tab" data-tab="laboratorio">Laboratorio</button>
+      </nav>
+    </header>
+
+    <section class="cards">
+      <article class="card">
+        <div class="label">Solicitacoes</div>
+        <div class="metric" id="totalRequests">0</div>
+        <div class="chip" id="requestMonths">Todos os meses</div>
+      </article>
+      <article class="card">
+        <div class="label">Medicos visitados</div>
+        <div class="metric" id="visitedDoctors">0</div>
+        <div class="chip" id="visitedReps">Representantes filtrados</div>
+      </article>
+      <article class="card">
+        <div class="label">Producao imagem visitados</div>
+        <div class="metric" id="imageProduction">0</div>
+        <div class="chip">Total por medico visitado</div>
+      </article>
+      <article class="card">
+        <div class="label">Producao laboratorio</div>
+        <div class="metric" id="labProduction">0</div>
+        <div class="chip">Soma no periodo</div>
+      </article>
+    </section>
+
+    <section class="content active" id="tab-geral">
+      <div class="grid-2">
+        <article class="panel">
+          <h2>Ranking geral por solicitante</h2>
+          <div class="bar-list" id="overallSolicitanteBars"></div>
+        </article>
+        <article class="panel">
+          <h2>Modalidades mais solicitadas</h2>
+          <div class="bar-list" id="overallModalityBars"></div>
+        </article>
+      </div>
+      <div class="grid-2">
+        <article class="panel">
+          <h2>Producao de imagem por mes</h2>
+          <div class="bar-list" id="visitedMonthBars"></div>
+        </article>
+        <article class="panel">
+          <h2>Laboratorio por mes</h2>
+          <div class="bar-list" id="labMonthBars"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="content" id="tab-ranking">
+      <div class="grid-2">
+        <article class="panel">
+          <h2>Ranking por solicitante</h2>
+          <div class="bar-list" id="solicitanteBars"></div>
+        </article>
+        <article class="panel">
+          <h2>Ranking por modalidade</h2>
+          <div class="bar-list" id="modalityBars"></div>
+        </article>
+      </div>
+      <article class="panel">
+        <h2>Detalhe solicitantes</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mes</th><th>Solicitante</th><th>Modalidade</th><th>Quantidade</th></tr></thead>
+            <tbody id="rankingTable"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="content" id="tab-visitados">
+      <div class="grid-3">
+        <article class="panel">
+          <h2>Medicos por representante</h2>
+          <div class="bar-list" id="repBars"></div>
+        </article>
+        <article class="panel">
+          <h2>Producao por especialidade</h2>
+          <div class="bar-list" id="specialtyBars"></div>
+        </article>
+        <article class="panel">
+          <h2>Top medicos visitados</h2>
+          <div class="bar-list" id="visitedDoctorBars"></div>
+        </article>
+      </div>
+      <article class="panel">
+        <h2>Comparativo producao de medicos visitados</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Mes visita</th><th>Medico</th><th>Representante</th><th>Especialidade</th><th>Cintilo.</th><th>Densito.</th><th>Mamo.</th><th>Resson.</th><th>Tomo.</th><th>Ultrassom</th><th>Total</th></tr>
+            </thead>
+            <tbody id="visitedTable"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="content" id="tab-laboratorio">
+      <div class="grid-2">
+        <article class="panel">
+          <h2>Producao por mes</h2>
+          <div class="bar-list" id="labBars"></div>
+        </article>
+        <article class="panel">
+          <h2>Ranking laboratorio por solicitante</h2>
+          <div class="bar-list" id="labDoctorBars"></div>
+        </article>
+      </div>
+      <article class="panel">
+        <h2>Detalhe laboratorio</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mes</th><th>Medico solicitante</th><th>Producao</th></tr></thead>
+            <tbody id="labTable"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="xlsx.full.min.js"></script>
+  <script>
+    const state = {
+      ranking: [
+        { month: "Jan/2026", solicitante: "Dra. Almeida", modalidade: "Tomografia", quantidade: 184 },
+        { month: "Jan/2026", solicitante: "Dr. Santos", modalidade: "Ultrassom", quantidade: 142 },
+        { month: "Fev/2026", solicitante: "Dra. Almeida", modalidade: "Ressonancia", quantidade: 212 },
+        { month: "Fev/2026", solicitante: "Dra. Costa", modalidade: "Mamografia", quantidade: 96 },
+        { month: "Mar/2026", solicitante: "Dr. Santos", modalidade: "Tomografia", quantidade: 168 },
+        { month: "Mar/2026", solicitante: "Dra. Costa", modalidade: "Ultrassom", quantidade: 121 }
+      ],
+      visited: [
+        { visitMonth: "Jan/2026", productionMonth: "Jan/2026", doctor: "Dra. Almeida", representative: "Renata", specialty: "Cardiologia", cintilografia: 12, densitometria: 24, mamografia: 16, ressonancia: 44, tomografia: 82, ultrassom: 66, total: 244 },
+        { visitMonth: "Fev/2026", productionMonth: "Fev/2026", doctor: "Dr. Santos", representative: "Marcos", specialty: "Ortopedia", cintilografia: 8, densitometria: 12, mamografia: 0, ressonancia: 51, tomografia: 90, ultrassom: 38, total: 199 },
+        { visitMonth: "Mar/2026", productionMonth: "Mar/2026", doctor: "Dra. Costa", representative: "Renata", specialty: "Clinica Medica", cintilografia: 5, densitometria: 18, mamografia: 21, ressonancia: 33, tomografia: 74, ultrassom: 52, total: 203 }
+      ],
+      lab: [
+        { month: "Jan/2026", doctor: "Dra. Almeida", production: 650 },
+        { month: "Fev/2026", doctor: "Dra. Almeida", production: 690 },
+        { month: "Mar/2026", doctor: "Dra. Almeida", production: 720 },
+        { month: "Fev/2026", doctor: "Dr. Santos", production: 670 },
+        { month: "Mar/2026", doctor: "Dr. Santos", production: 640 },
+        { month: "Mar/2026", doctor: "Dra. Costa", production: 600 }
+      ]
+    };
+
+    const els = {
+      search: document.querySelector("#searchFilter"),
+      month: document.querySelector("#monthFilter"),
+      rep: document.querySelector("#repFilter"),
+      specialty: document.querySelector("#specialtyFilter"),
+      upload: document.querySelector("#excelUpload"),
+      status: document.querySelector("#status")
+    };
+
+    const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const monthMap = { jan: 1, janeiro: 1, fev: 2, fevereiro: 2, mar: 3, marco: 3, março: 3, abr: 4, abril: 4, mai: 5, maio: 5, jun: 6, junho: 6, jul: 7, julho: 7, ago: 8, agosto: 8, set: 9, setembro: 9, out: 10, outubro: 10, nov: 11, novembro: 11, dez: 12, dezembro: 12 };
+
+    function normalize(value) {
+      return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function parseNumber(value) {
+      return Number(String(value ?? "").replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "")) || 0;
+    }
+
+    function formatNumber(value) {
+      return Math.round(value).toLocaleString("pt-BR");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+    }
+
+    function getField(row, names) {
+      const entries = Object.entries(row);
+      for (const name of names) {
+        if (row[name] !== undefined && row[name] !== "") return row[name];
+        const found = entries.find(([key]) => normalize(key) === normalize(name));
+        if (found && found[1] !== "") return found[1];
+      }
+      return "";
+    }
+
+    function monthKey(value, yearValue) {
+      if (value instanceof Date) return `${monthNames[value.getMonth()]}/${value.getFullYear()}`;
+      if (typeof value === "number" && value > 25000) {
+        const date = new Date(Math.round((value - 25569) * 86400 * 1000));
+        return `${monthNames[date.getUTCMonth()]}/${date.getUTCFullYear()}`;
+      }
+      const text = String(value || "").trim();
+      const year = String(yearValue || "").trim();
+      const asNumber = Number(text);
+      if (asNumber >= 1 && asNumber <= 12 && year) return `${monthNames[asNumber - 1]}/${year}`;
+      const clean = normalize(text).replace(/[^a-z0-9/]/g, "");
+      if (clean.includes("/")) {
+        const [m, y] = clean.split("/");
+        const monthNumber = monthMap[m] || Number(m);
+        if (monthNumber && y) return `${monthNames[monthNumber - 1]}/20${String(y).slice(-2)}`;
+      }
+      const monthNumber = monthMap[clean] || Number(clean);
+      if (monthNumber && year) return `${monthNames[monthNumber - 1]}/${year}`;
+      return text;
+    }
+
+    function monthSort(key) {
+      const [m, y] = String(key).split("/");
+      return Number(y || 0) * 100 + (monthMap[normalize(m)] || 0);
+    }
+
+    function allMonths() {
+      return [...new Set([
+        ...state.ranking.map((item) => item.month),
+        ...state.visited.map((item) => item.visitMonth),
+        ...state.lab.map((item) => item.month)
+      ].filter(Boolean))].sort((a, b) => monthSort(a) - monthSort(b));
+    }
+
+    function populateSelect(select, values, allLabel = "Todos") {
+      const current = select.value;
+      const unique = [...new Set(values.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), "pt-BR"));
+      select.innerHTML = [`<option value="">${allLabel}</option>`, ...unique.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`)].join("");
+      select.value = unique.includes(current) ? current : "";
+    }
+
+    function refreshFilters() {
+      populateSelect(els.month, allMonths(), "Todos os meses");
+      populateSelect(els.rep, state.visited.map((item) => item.representative), "Todos");
+      populateSelect(els.specialty, state.visited.map((item) => item.specialty), "Todas");
+    }
+
+    function matchesName(value) {
+      return !els.search.value || normalize(value).includes(normalize(els.search.value));
+    }
+
+    function scopedDoctorSet() {
+      if (!els.rep.value && !els.specialty.value) return null;
+      return new Set(state.visited
+        .filter((item) =>
+          (!els.rep.value || item.representative === els.rep.value) &&
+          (!els.specialty.value || item.specialty === els.specialty.value)
+        )
+        .map((item) => normalize(item.doctor)));
+    }
+
+    function matchesDoctorScope(name, scope) {
+      return !scope || scope.has(normalize(name));
+    }
+
+    function filteredRanking() {
+      const scope = scopedDoctorSet();
+      return state.ranking.filter((item) =>
+        (!els.month.value || item.month === els.month.value) &&
+        matchesName(item.solicitante) &&
+        matchesDoctorScope(item.solicitante, scope)
+      );
+    }
+
+    function filteredVisited() {
+      return state.visited.filter((item) =>
+        (!els.month.value || item.visitMonth === els.month.value || item.productionMonth === els.month.value) &&
+        (!els.rep.value || item.representative === els.rep.value) &&
+        (!els.specialty.value || item.specialty === els.specialty.value) &&
+        matchesName(item.doctor)
+      );
+    }
+
+    function filteredLab() {
+      const scope = scopedDoctorSet();
+      return state.lab.filter((item) =>
+        (!els.month.value || item.month === els.month.value) &&
+        matchesName(item.doctor) &&
+        matchesDoctorScope(item.doctor, scope)
+      );
+    }
+
+    function groupSum(rows, labelKey, valueKey) {
+      const map = new Map();
+      rows.forEach((item) => map.set(item[labelKey], (map.get(item[labelKey]) || 0) + parseNumber(item[valueKey])));
+      return [...map.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+    }
+
+    function renderBars(id, rows, colorClass = "", limit = 10) {
+      const target = document.querySelector(`#${id}`);
+      const top = rows.slice(0, limit);
+      const max = Math.max(1, ...top.map((item) => item.value));
+      target.innerHTML = top.length ? top.map((item) => `
+        <div class="bar-row" title="${escapeHtml(item.label)}">
+          <div class="bar-label">${escapeHtml(item.label)}</div>
+          <div class="track"><div class="fill ${colorClass}" style="width:${Math.max(4, (item.value / max) * 100)}%"></div></div>
+          <div class="value">${formatNumber(item.value)}</div>
+        </div>
+      `).join("") : `<div class="muted">Sem dados para os filtros.</div>`;
+    }
+
+    function renderTables(ranking, visited, lab) {
+      document.querySelector("#rankingTable").innerHTML = ranking.map((item) => `
+        <tr><td>${escapeHtml(item.month)}</td><td>${escapeHtml(item.solicitante)}</td><td>${escapeHtml(item.modalidade)}</td><td>${formatNumber(item.quantidade)}</td></tr>
+      `).join("");
+      document.querySelector("#visitedTable").innerHTML = visited.map((item) => `
+        <tr><td>${escapeHtml(item.visitMonth)}</td><td>${escapeHtml(item.doctor)}</td><td>${escapeHtml(item.representative)}</td><td>${escapeHtml(item.specialty)}</td><td>${formatNumber(item.cintilografia)}</td><td>${formatNumber(item.densitometria)}</td><td>${formatNumber(item.mamografia)}</td><td>${formatNumber(item.ressonancia)}</td><td>${formatNumber(item.tomografia)}</td><td>${formatNumber(item.ultrassom)}</td><td>${formatNumber(item.total)}</td></tr>
+      `).join("");
+      document.querySelector("#labTable").innerHTML = lab.map((item) => `
+        <tr><td>${escapeHtml(item.month)}</td><td>${escapeHtml(item.doctor)}</td><td>${formatNumber(item.production)}</td></tr>
+      `).join("");
+    }
+
+    function render() {
+      const ranking = filteredRanking();
+      const visited = filteredVisited();
+      const lab = filteredLab();
+      const totalRequests = ranking.reduce((sum, item) => sum + item.quantidade, 0);
+      const imageProduction = visited.reduce((sum, item) => sum + item.total, 0);
+      const labProduction = lab.reduce((sum, item) => sum + item.production, 0);
+
+      document.querySelector("#totalRequests").textContent = formatNumber(totalRequests);
+      document.querySelector("#visitedDoctors").textContent = formatNumber(new Set(visited.map((item) => item.doctor)).size);
+      document.querySelector("#imageProduction").textContent = formatNumber(imageProduction);
+      document.querySelector("#labProduction").textContent = formatNumber(labProduction);
+      document.querySelector("#requestMonths").textContent = els.month.value || "Todos os meses";
+      document.querySelector("#visitedReps").textContent = els.rep.value || "Representantes filtrados";
+
+      const rankingBySolicitante = groupSum(ranking, "solicitante", "quantidade");
+      const rankingByModality = groupSum(ranking, "modalidade", "quantidade");
+      const visitedByMonth = groupSum(visited, "productionMonth", "total").sort((a, b) => monthSort(a.label) - monthSort(b.label));
+      const labByMonth = groupSum(lab, "month", "production").sort((a, b) => monthSort(a.label) - monthSort(b.label));
+
+      renderBars("overallSolicitanteBars", rankingBySolicitante);
+      renderBars("overallModalityBars", rankingByModality, "amber");
+      renderBars("visitedMonthBars", visitedByMonth, "blue", 12);
+      renderBars("labMonthBars", labByMonth, "", 12);
+      renderBars("solicitanteBars", rankingBySolicitante);
+      renderBars("modalityBars", rankingByModality, "amber");
+      renderBars("repBars", groupSum(visited, "representative", "total"), "blue");
+      renderBars("specialtyBars", groupSum(visited, "specialty", "total"), "amber");
+      renderBars("visitedDoctorBars", groupSum(visited, "doctor", "total"), "blue");
+      renderBars("labBars", labByMonth, "", 12);
+      renderBars("labDoctorBars", groupSum(lab, "doctor", "production"));
+      renderTables(ranking, visited, lab);
+    }
+
+    function sheetRows(workbook, names) {
+      const sheetName = workbook.SheetNames.find((name) => names.map(normalize).includes(normalize(name))) || names.find((name) => workbook.SheetNames.includes(name));
+      if (!sheetName) return [];
+      return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+    }
+
+    function loadWorkbook(workbook) {
+      const rankingRows = sheetRows(workbook, ["Ranking_2026", "Ranking 2026"]);
+      const visitedRows = sheetRows(workbook, ["Visitados_2026", "Comp_Visitados_2026", "Comp Medicos Visitados 2026"]);
+      const labRows = sheetRows(workbook, ["Laboratorio_2026", "Prod_Lab_2026", "Prod Lab 2026"]);
+
+      state.ranking = rankingRows.map((row) => ({
+        month: monthKey(getField(row, ["Mes", "Mês"]), getField(row, ["Ano"])),
+        solicitante: String(getField(row, ["Solicitante", "Medico Solicitante", "Médico Solicitante"]) || "").trim(),
+        modalidade: String(getField(row, ["Modalidade"]) || "").trim(),
+        quantidade: parseNumber(getField(row, ["Quantidade", "QTD", "Qtd"]))
+      })).filter((item) => item.month && item.solicitante && item.modalidade);
+
+      state.visited = visitedRows.map((row) => {
+        const total = parseNumber(getField(row, ["Total", "TOTAL"]));
+        const item = {
+          visitMonth: monthKey(getField(row, ["Mes Visita", "Mês Visita", "Visita"]), getField(row, ["Ano"])),
+          productionMonth: monthKey(getField(row, ["Mes Producao", "Mês Produção", "MÊS DA PRODUÇÃO"]), getField(row, ["Ano"])),
+          doctor: String(getField(row, ["Medico Solicitante", "Médico Solicitante", "Solicitante"]) || "").trim(),
+          representative: String(getField(row, ["Representante"]) || "").trim(),
+          specialty: String(getField(row, ["Especialidade", "Especialidades"]) || "").trim(),
+          cintilografia: parseNumber(getField(row, ["Cintilografia"])),
+          densitometria: parseNumber(getField(row, ["Densitometria"])),
+          mamografia: parseNumber(getField(row, ["Mamografia"])),
+          ressonancia: parseNumber(getField(row, ["Ressonancia", "Ressonância"])),
+          tomografia: parseNumber(getField(row, ["Tomografia"])),
+          ultrassom: parseNumber(getField(row, ["Ultrassom"])),
+          total
+        };
+        item.total = item.total || item.cintilografia + item.densitometria + item.mamografia + item.ressonancia + item.tomografia + item.ultrassom;
+        return item;
+      }).filter((item) => item.visitMonth && item.doctor);
+
+      state.lab = labRows.map((row) => ({
+        month: monthKey(getField(row, ["Mes Producao", "Mês Produção", "MÊS DA PRODUÇÃO", "Mes"]), getField(row, ["Ano"])),
+        doctor: String(getField(row, ["Medico Solicitante", "Médico Solicitante", "Solicitante"]) || "").trim(),
+        production: parseNumber(getField(row, ["Producao", "Produção", "PRODUÇÃO"]))
+      })).filter((item) => item.month && item.doctor);
+
+      refreshFilters();
+      render();
+      els.status.textContent = `Arquivo carregado: ${rankingRows.length + visitedRows.length + labRows.length} linhas lidas`;
+    }
+
+    async function handleUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (!window.XLSX) {
+        els.status.textContent = "Leitor de Excel nao carregado";
+        return;
+      }
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
+      loadWorkbook(workbook);
+    }
+
+    document.querySelectorAll(".tab").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((item) => item.classList.toggle("active", item === button));
+        document.querySelectorAll(".content").forEach((section) => section.classList.toggle("active", section.id === `tab-${button.dataset.tab}`));
+      });
+    });
+
+    [els.search, els.month, els.rep, els.specialty].forEach((control) => control.addEventListener("input", render));
+    [els.month, els.rep, els.specialty].forEach((control) => control.addEventListener("change", render));
+    els.upload.addEventListener("change", handleUpload);
+    refreshFilters();
+    render();
+  </script>
+</body>
+</html>
