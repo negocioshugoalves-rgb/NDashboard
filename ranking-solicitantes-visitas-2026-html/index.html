@@ -450,8 +450,12 @@
           <input id="searchFilter" type="search" placeholder="Nome do medico ou solicitante">
         </label>
         <label class="filter">
-          <span class="label">Mes</span>
-          <select id="monthFilter"></select>
+          <span class="label">Mês da Produção</span>
+          <select id="monthProdFilter"></select>
+        </label>
+        <label class="filter">
+          <span class="label">Mês da Visita</span>
+          <select id="monthVisitFilter"></select>
         </label>
         <label class="filter">
           <span class="label">Representante</span>
@@ -597,7 +601,8 @@
 
     const els = {
       search: document.querySelector("#searchFilter"),
-      month: document.querySelector("#monthFilter"),
+      month: document.querySelector("#monthProdFilter"),
+      monthVisit: document.querySelector("#monthVisitFilter"),
       rep: document.querySelector("#repFilter"),
       specialty: document.querySelector("#specialtyFilter"),
       upload: document.querySelector("#excelUpload"),
@@ -752,6 +757,7 @@
     }
     function refreshFilters() {
       populateSelect(els.month, allMonths(), "Todos os meses");
+      populateSelect(els.monthVisit, state.visited.map(i => i.visitMonth), "Todos os meses");
       populateSelect(els.rep, state.visited.map(i => i.representative), "Todos");
       populateSelect(els.specialty, state.visited.map(i => i.specialty), "Todas");
     }
@@ -767,11 +773,18 @@
     function matchesDoctorScope(name, scope) { return !scope || scope.has(normalize(name)); }
     function filteredRanking() {
       const scope = scopedDoctorSet();
-      return state.ranking.filter(i => (!els.month.value || i.month === els.month.value) && matchesName(i.solicitante) && matchesDoctorScope(i.solicitante, scope));
+      // Ranking usa Mês da Produção
+      return state.ranking.filter(i =>
+        (!els.month.value || i.month === els.month.value) &&
+        matchesName(i.solicitante) &&
+        matchesDoctorScope(i.solicitante, scope)
+      );
     }
     function filteredVisited() {
       return state.visited.filter(i =>
-        (!els.month.value || i.visitMonth === els.month.value || i.productionMonth === els.month.value) &&
+        // Mês da Produção e Mês da Visita são independentes — cada um filtra só o seu campo
+        (!els.month.value || i.productionMonth === els.month.value) &&
+        (!els.monthVisit.value || i.visitMonth === els.monthVisit.value) &&
         (!els.rep.value || i.representative === els.rep.value) &&
         (!els.specialty.value || i.specialty === els.specialty.value) &&
         matchesName(i.doctor)
@@ -779,7 +792,11 @@
     }
     function filteredLab() {
       const scope = scopedDoctorSet();
-      return state.lab.filter(i => (!els.month.value || i.month === els.month.value) && matchesName(i.doctor) && matchesDoctorScope(i.doctor, scope));
+      return state.lab.filter(i =>
+        (!els.month.value || i.month === els.month.value) &&
+        matchesName(i.doctor) &&
+        matchesDoctorScope(i.doctor, scope)
+      );
     }
     function groupSum(rows, labelKey, valueKey) {
       const map = new Map();
@@ -822,7 +839,9 @@
       document.querySelector("#visitedDoctors").textContent = formatNumber(new Set(visited.map(i => i.doctor)).size);
       document.querySelector("#imageProduction").textContent = formatNumber(imageProduction);
       document.querySelector("#labProduction").textContent = formatNumber(labProduction);
-      document.querySelector("#requestMonths").textContent = els.month.value || "Todos os meses";
+      const prodLabel = els.month.value || "Todos os meses";
+      const visitLabel = els.monthVisit.value || "Todos os meses";
+      document.querySelector("#requestMonths").textContent = prodLabel === visitLabel ? prodLabel : `Prod: ${prodLabel} · Visita: ${visitLabel}`;
       document.querySelector("#visitedReps").textContent = els.rep.value || "Representantes filtrados";
       const rankingBySolicitante = groupSum(ranking,"solicitante","quantidade");
       const rankingByModality = groupSum(ranking,"modalidade","quantidade");
@@ -932,8 +951,8 @@
       });
     });
 
-    [els.search, els.month, els.rep, els.specialty].forEach(c => c.addEventListener("input", render));
-    [els.month, els.rep, els.specialty].forEach(c => c.addEventListener("change", render));
+    [els.search, els.month, els.monthVisit, els.rep, els.specialty].forEach(c => c.addEventListener("input", render));
+    [els.month, els.monthVisit, els.rep, els.specialty].forEach(c => c.addEventListener("change", render));
     els.upload.addEventListener("change", handleUpload);
 
     // ── Inicialização: restaura upload ativo do histórico ──
