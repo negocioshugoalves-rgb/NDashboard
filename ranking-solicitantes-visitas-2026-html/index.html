@@ -559,7 +559,7 @@
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>Mes visita</th><th>Medico</th><th>Representante</th><th>Especialidade</th><th>Cintilo.</th><th>Densito.</th><th>Mamo.</th><th>Resson.</th><th>Tomo.</th><th>Ultrassom</th><th>Total</th></tr>
+              <tr><th>Mes visita</th><th>Mes produção</th><th>Medico</th><th>Representante</th><th>Especialidade</th><th>Cintilo.</th><th>Densito.</th><th>Mamo.</th><th>Resson.</th><th>Tomo.</th><th>Ultrassom</th><th>Total</th></tr>
             </thead>
             <tbody id="visitedTable"></tbody>
           </table>
@@ -796,8 +796,10 @@
       document.querySelector("#rankingTable").innerHTML = ranking.map(i =>
         `<tr><td>${escapeHtml(i.month)}</td><td>${escapeHtml(i.solicitante)}</td><td>${escapeHtml(i.modalidade)}</td><td>${formatNumber(i.quantidade)}</td></tr>`
       ).join("");
-      document.querySelector("#visitedTable").innerHTML = visited.map(i =>
-        `<tr><td>${escapeHtml(i.visitMonth)}</td><td>${escapeHtml(i.doctor)}</td><td>${escapeHtml(i.representative)}</td><td>${escapeHtml(i.specialty)}</td><td>${formatNumber(i.cintilografia)}</td><td>${formatNumber(i.densitometria)}</td><td>${formatNumber(i.mamografia)}</td><td>${formatNumber(i.ressonancia)}</td><td>${formatNumber(i.tomografia)}</td><td>${formatNumber(i.ultrassom)}</td><td>${formatNumber(i.total)}</td></tr>`
+      document.querySelector("#visitedTable").innerHTML = [...visited]
+        .sort((a,b) => monthSort(a.productionMonth) - monthSort(b.productionMonth) || monthSort(a.visitMonth) - monthSort(b.visitMonth))
+        .map(i =>
+        `<tr><td>${escapeHtml(i.visitMonth)}</td><td><strong>${escapeHtml(i.productionMonth)}</strong></td><td>${escapeHtml(i.doctor)}</td><td>${escapeHtml(i.representative)}</td><td>${escapeHtml(i.specialty)}</td><td>${formatNumber(i.cintilografia)}</td><td>${formatNumber(i.densitometria)}</td><td>${formatNumber(i.mamografia)}</td><td>${formatNumber(i.ressonancia)}</td><td>${formatNumber(i.tomografia)}</td><td>${formatNumber(i.ultrassom)}</td><td>${formatNumber(i.total)}</td></tr>`
       ).join("");
       document.querySelector("#labTable").innerHTML = lab.map(i =>
         `<tr><td>${escapeHtml(i.month)}</td><td>${escapeHtml(i.doctor)}</td><td>${formatNumber(i.production)}</td></tr>`
