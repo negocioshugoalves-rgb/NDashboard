@@ -639,13 +639,16 @@
       renderHistory();
     }
     function deactivateUpload(id) {
-      const history = loadUploadHistory();
-      history.forEach(u => { if (u.id === id) u.active = false; });
-      saveUploadHistory(history);
-      state.ranking = []; state.visited = []; state.lab = [];
-      refreshFilters(); render();
-      els.status.textContent = "Upload desativado. Dashboard sem dados.";
-      renderHistory();
+      askUploadPassword().then(ok => {
+        if (!ok) { alert("Senha incorreta. Ação cancelada."); return; }
+        const history = loadUploadHistory();
+        history.forEach(u => { if (u.id === id) u.active = false; });
+        saveUploadHistory(history);
+        state.ranking = []; state.visited = []; state.lab = [];
+        refreshFilters(); render();
+        els.status.textContent = "Upload desativado. Dashboard sem dados.";
+        renderHistory();
+      });
     }
     function deleteUpload(id) {
       let history = loadUploadHistory();
@@ -656,7 +659,10 @@
       renderHistory();
     }
     function confirmDelete(id) {
-      if (confirm("Excluir este upload do histórico? Esta ação não pode ser desfeita.")) deleteUpload(id);
+      askUploadPassword().then(ok => {
+        if (!ok) { alert("Senha incorreta. Ação cancelada."); return; }
+        if (confirm("Excluir este upload do histórico? Esta ação não pode ser desfeita.")) deleteUpload(id);
+      });
     }
     function renderHistory() {
       const history = loadUploadHistory();
