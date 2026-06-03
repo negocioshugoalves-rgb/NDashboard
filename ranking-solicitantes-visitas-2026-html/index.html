@@ -1339,7 +1339,14 @@
     if (historyTab && uploadHistory) historyTab.appendChild(uploadHistory);
 
     document.querySelectorAll(".tab").forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
+        if (btn.dataset.tab === "historico") {
+          const allowed = await askUploadPassword();
+          if (!allowed) {
+            alert("Senha incorreta. Acesso cancelado.");
+            return;
+          }
+        }
         document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t === btn));
         document.querySelectorAll(".content").forEach(s => s.classList.toggle("active", s.id === `tab-${btn.dataset.tab}`));
       });
