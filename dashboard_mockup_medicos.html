@@ -474,6 +474,10 @@ th {
 
   <section class="content" id="tab-imagem">
     <article class="panel">
+      <h2>Diferenca mensal - Imagem</h2>
+      <div class="difference-chart" data-service="image" aria-label="Grafico de diferenca mensal imagem"></div>
+    </article>
+    <article class="panel">
       <h2>Comparativo mensal - Imagem</h2>
       <div class="table-wrap">
         <table>
@@ -488,6 +492,10 @@ th {
   </section>
 
   <section class="content" id="tab-laboratorio">
+    <article class="panel">
+      <h2>Diferenca mensal - Laboratorio</h2>
+      <div class="difference-chart" data-service="lab" aria-label="Grafico de diferenca mensal laboratorio"></div>
+    </article>
     <article class="panel">
       <h2>Comparativo mensal - Laboratorio</h2>
       <div class="table-wrap">
@@ -1101,8 +1109,39 @@ function rowHtml(monthLabel, doctorName, previous, current, difference) {
   </tr>`;
 }
 
+function previousMonthKey(monthLabel) {
+  const [label, yearText] = String(monthLabel).split("/");
+  const monthNumber = monthNameToNumber[normalize(label)] || 0;
+  const yearNumber = Number(yearText);
+  if (!monthNumber || !yearNumber) return "";
+  const previousMonth = monthNumber === 1 ? 12 : monthNumber - 1;
+  const previousYear = monthNumber === 1 ? yearNumber - 1 : yearNumber;
+  return monthKey(previousMonth, previousYear);
+}
+
+function buildMonthlyRows(records) {
+  const totals = new Map();
+  records.forEach(record => {
+    const key = `${record.doctor}||${record.month}||${record.service}`;
+    const item = totals.get(key) || {
+      doctor: record.doctor,
+      month: record.month,
+      service: record.service,
+      current: 0
+    };
+    item.current += record.current;
+    totals.set(key, item);
+  });
+
+  return [...totals.values()].map(item => {
+    const previousMonth = previousMonthKey(item.month);
+    const previous = totals.get(`${item.doctor}||${previousMonth}||${item.service}`)?.current || 0;
+    return { ...item, previous };
+  });
+}
+
 function applyUploadData(entry) {
-  const rows = entry.rows;
+  const rows = buildMonthlyRows(entry.rows || []);
   const allMonths = [...new Set(rows.map(r => r.month))].filter(Boolean).sort((a,b) => monthSortValue(a) - monthSortValue(b));
   monthOrder = allMonths.length ? allMonths : monthOrder;
 
@@ -1146,7 +1185,7 @@ function processExcelFile(file) {
 
       if (!data.length) { setStatus("Planilha vazia ou nao reconhecida.", true); return; }
 
-      const parsedRows = [];
+      const importedRows = [];
       data.forEach(record => {
         const monthLabel = getMonthFromRecord(record);
         if (!monthLabel) return;
@@ -1155,11 +1194,11 @@ function processExcelFile(file) {
         const serviceRaw = getField(record, ["Servico","Serviço","servico","Tipo Servico","Tipo Serviço","Tipo_Servico","Tipo_Serviço","Tipo","tipo"]) ?? "";
         const service = normalizeService(serviceRaw);
         if (!service) return;
-        const previous = parseNumber(getField(record, ["Mes_anterior","MesAnterior","mes_anterior","Anterior","anterior"]) ?? 0);
         const current = parseNumber(getField(record, ["Mes_atual","MesAtual","mes_atual","Atual","atual","Producao","producao"]) ?? 0);
-        parsedRows.push({ month: monthLabel, doctor, service, previous, current });
+        importedRows.push({ month: monthLabel, doctor, service, current });
       });
 
+      const parsedRows = buildMonthlyRows(importedRows);
       if (!parsedRows.length) { setStatus("Nenhum registro valido encontrado. Verifique o modelo.", true); return; }
 
       const monthsFound = [...new Set(parsedRows.map(r => r.month))].sort((a,b) => monthSortValue(a) - monthSortValue(b)).join(", ");
