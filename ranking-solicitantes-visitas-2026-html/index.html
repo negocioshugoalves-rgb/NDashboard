@@ -133,7 +133,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: 1.3fr minmax(150px, .8fr) minmax(170px, .8fr) minmax(170px, .8fr);
+      grid-template-columns: 1.3fr minmax(150px, .8fr) minmax(170px, .8fr);
       gap: 10px;
     }
 
@@ -197,7 +197,7 @@
 
     .cards {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 12px;
     }
 
@@ -296,11 +296,15 @@
 
     .fill.blue { background: var(--blue); }
     .fill.amber { background: var(--amber); }
+    .fill.red { background: var(--red); }
 
     .value {
       text-align: right;
       font-weight: 700;
     }
+
+    .positive-text { color: var(--teal); font-weight: 750; }
+    .negative-text { color: var(--red); font-weight: 750; }
 
     .table-wrap {
       overflow: auto;
@@ -420,7 +424,7 @@
       <div class="title-row">
         <div>
           <h1>Ranking Solicitantes e Visitas 2026</h1>
-          <div class="subtitle">Visao integrada das tres abas 2026 do relatorio</div>
+          <div class="subtitle">Visao integrada das abas do relatorio com comparativo de producao 2025 x 2026</div>
         </div>
         <div class="status" id="status">Base exemplo carregada</div>
       </div>
@@ -431,7 +435,7 @@
           <input id="excelUpload" type="file" accept=".xlsx,.xls">
           <a class="model-link" href="modelo_ranking_solicitantes_visitas_2026.xlsx" download>Baixar modelo Excel</a>
         </label>
-        <div class="status">Abas esperadas: Ranking_2026, Visitados_2026, Laboratorio_2026</div>
+        <div class="status">Abas esperadas: Ranking_2026, Visitados_2026, Laboratorio_2026. Opcional: Producao_2025, Visitados_2025 ou Laboratorio_2025.</div>
       </section>
 
       <!-- Histórico de uploads -->
@@ -458,10 +462,6 @@
           <select id="monthVisitFilter"></select>
         </label>
         <label class="filter">
-          <span class="label">Representante</span>
-          <select id="repFilter"></select>
-        </label>
-        <label class="filter">
           <span class="label">Especialidade</span>
           <select id="specialtyFilter"></select>
         </label>
@@ -472,6 +472,7 @@
         <button class="tab" data-tab="ranking">Ranking Solicitantes</button>
         <button class="tab" data-tab="visitados">Medicos Visitados</button>
         <button class="tab" data-tab="laboratorio">Laboratorio</button>
+        <button class="tab" data-tab="comparativo">Comparativo 2025 x 2026</button>
       </nav>
     </header>
 
@@ -484,7 +485,7 @@
       <article class="card">
         <div class="label">Medicos visitados</div>
         <div class="metric" id="visitedDoctors">0</div>
-        <div class="chip" id="visitedReps">Representantes filtrados</div>
+        <div class="chip" id="visitedScope">Especialidades filtradas</div>
       </article>
       <article class="card">
         <div class="label">Producao imagem visitados</div>
@@ -495,6 +496,16 @@
         <div class="label">Producao laboratorio</div>
         <div class="metric" id="labProduction">0</div>
         <div class="chip">Soma no periodo</div>
+      </article>
+      <article class="card">
+        <div class="label">Producao 2025</div>
+        <div class="metric" id="previousProduction">0</div>
+        <div class="chip">Base comparativa</div>
+      </article>
+      <article class="card">
+        <div class="label">Variacao 2026 x 2025</div>
+        <div class="metric" id="productionDelta">0</div>
+        <div class="chip" id="productionDeltaPct">0,0%</div>
       </article>
     </section>
 
@@ -592,18 +603,39 @@
         </div>
       </article>
     </section>
+
+    <section class="content" id="tab-comparativo">
+      <div class="grid-2">
+        <article class="panel">
+          <h2>Variação por médico</h2>
+          <div class="bar-list" id="comparisonBars"></div>
+        </article>
+        <article class="panel">
+          <h2>Top produção 2026</h2>
+          <div class="bar-list" id="comparisonCurrentBars"></div>
+        </article>
+      </div>
+      <article class="panel">
+        <h2>Detalhe comparativo</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Médico</th><th>Produção 2025</th><th>Produção 2026</th><th>Diferença</th><th>Variação</th></tr></thead>
+            <tbody id="comparisonTable"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
   </main>
 
   <script src="xlsx.full.min.js"></script>
   <script>
     // ── Estado ──
-    const state = { ranking: [], visited: [], lab: [] };
+    const state = { ranking: [], visited: [], lab: [], previousProduction: [] };
 
     const els = {
       search: document.querySelector("#searchFilter"),
       month: document.querySelector("#monthProdFilter"),
       monthVisit: document.querySelector("#monthVisitFilter"),
-      rep: document.querySelector("#repFilter"),
       specialty: document.querySelector("#specialtyFilter"),
       upload: document.querySelector("#excelUpload"),
       status: document.querySelector("#status")
@@ -711,7 +743,7 @@
       if (active) {
         applyParsedState(active.parsedState, active.name);
       } else {
-        state.ranking = []; state.visited = []; state.lab = [];
+        state.ranking = []; state.visited = []; state.lab = []; state.previousProduction = [];
         refreshFilters(); render();
       }
     }
@@ -743,7 +775,7 @@
         const history = loadUploadHistory();
         history.forEach(u => { if (u.id === id) u.active = false; });
         saveUploadHistory(history);
-        state.ranking = []; state.visited = []; state.lab = [];
+        state.ranking = []; state.visited = []; state.lab = []; state.previousProduction = [];
         refreshFilters(); render();
         els.status.textContent = "Upload desativado. Dashboard sem dados.";
         renderHistory();
@@ -754,7 +786,7 @@
       const wasActive = history.find(u => u.id === id)?.active;
       history = history.filter(u => u.id !== id);
       saveUploadHistory(history);
-      if (wasActive) { state.ranking=[]; state.visited=[]; state.lab=[]; refreshFilters(); render(); els.status.textContent="Upload ativo removido."; }
+      if (wasActive) { state.ranking=[]; state.visited=[]; state.lab=[]; state.previousProduction=[]; refreshFilters(); render(); els.status.textContent="Upload ativo removido."; }
       renderHistory();
     }
     function confirmDelete(id) {
@@ -852,16 +884,15 @@
     function refreshFilters() {
       populateSelect(els.month, allMonths(), "Todos os meses");
       populateSelect(els.monthVisit, state.visited.map(i => i.visitMonth), "Todos os meses");
-      populateSelect(els.rep, state.visited.map(i => i.representative), "Todos");
       populateSelect(els.specialty, state.visited.map(i => i.specialty), "Todas");
     }
     function matchesName(value) {
       return !els.search.value || normalize(value).includes(normalize(els.search.value));
     }
     function scopedDoctorSet() {
-      if (!els.rep.value && !els.specialty.value) return null;
+      if (!els.specialty.value) return null;
       return new Set(state.visited
-        .filter(i => (!els.rep.value || i.representative === els.rep.value) && (!els.specialty.value || i.specialty === els.specialty.value))
+        .filter(i => !els.specialty.value || i.specialty === els.specialty.value)
         .map(i => normalize(i.doctor)));
     }
     function matchesDoctorScope(name, scope) { return !scope || scope.has(normalize(name)); }
@@ -879,7 +910,6 @@
         // Mês da Produção e Mês da Visita são independentes — cada um filtra só o seu campo
         (!els.month.value || i.productionMonth === els.month.value) &&
         (!els.monthVisit.value || i.visitMonth === els.monthVisit.value) &&
-        (!els.rep.value || i.representative === els.rep.value) &&
         (!els.specialty.value || i.specialty === els.specialty.value) &&
         matchesName(i.doctor)
       );
@@ -888,6 +918,21 @@
       const scope = scopedDoctorSet();
       return state.lab.filter(i =>
         (!els.month.value || i.month === els.month.value) &&
+        matchesName(i.doctor) &&
+        matchesDoctorScope(i.doctor, scope)
+      );
+    }
+    function previousMonthForSelectedCurrent() {
+      if (!els.month.value) return "";
+      const [monthLabel, yearText] = String(els.month.value).split("/");
+      const year = Number(yearText);
+      return year ? `${monthLabel}/${year - 1}` : "";
+    }
+    function filteredPreviousProduction() {
+      const scope = scopedDoctorSet();
+      const previousMonth = previousMonthForSelectedCurrent();
+      return state.previousProduction.filter(i =>
+        (!previousMonth || i.month === previousMonth) &&
         matchesName(i.doctor) &&
         matchesDoctorScope(i.doctor, scope)
       );
@@ -909,6 +954,59 @@
         </div>
       `).join("") : `<div class="muted">Sem dados para os filtros.</div>`;
     }
+    function productionByDoctor(visited, lab, previousProduction) {
+      const map = new Map();
+      visited.forEach(i => {
+        const key = i.doctor;
+        const row = map.get(key) || { doctor: key, previous: 0, current: 0 };
+        row.current += parseNumber(i.total);
+        map.set(key, row);
+      });
+      lab.forEach(i => {
+        const key = i.doctor;
+        const row = map.get(key) || { doctor: key, previous: 0, current: 0 };
+        row.current += parseNumber(i.production);
+        map.set(key, row);
+      });
+      previousProduction.forEach(i => {
+        const key = i.doctor;
+        const row = map.get(key) || { doctor: key, previous: 0, current: 0 };
+        row.previous += parseNumber(i.production);
+        map.set(key, row);
+      });
+      return [...map.values()]
+        .map(row => {
+          const difference = row.current - row.previous;
+          const percent = row.previous ? (difference / row.previous) * 100 : (row.current ? 100 : 0);
+          return { ...row, difference, percent };
+        })
+        .sort((a,b) => Math.abs(b.difference) - Math.abs(a.difference) || b.current - a.current);
+    }
+    function renderComparisonBars(id, rows, limit = 10) {
+      const target = document.querySelector(`#${id}`);
+      const top = rows.slice(0, limit);
+      const max = Math.max(1, ...top.map(i => Math.abs(i.difference)));
+      target.innerHTML = top.length ? top.map(i => `
+        <div class="bar-row" title="${escapeHtml(i.doctor)}">
+          <div class="bar-label">${escapeHtml(i.doctor)}</div>
+          <div class="track"><div class="fill ${i.difference < 0 ? "red" : "blue"}" style="width:${Math.max(4,(Math.abs(i.difference)/max)*100)}%"></div></div>
+          <div class="value ${i.difference < 0 ? "negative-text" : "positive-text"}">${i.difference >= 0 ? "+" : ""}${formatNumber(i.difference)}</div>
+        </div>
+      `).join("") : `<div class="muted">Sem dados para comparar.</div>`;
+    }
+    function renderComparisonTable(rows) {
+      document.querySelector("#comparisonTable").innerHTML = rows.map(i => {
+        const cls = i.difference < 0 ? "negative-text" : "positive-text";
+        const sign = i.difference >= 0 ? "+" : "";
+        return `<tr>
+          <td>${escapeHtml(i.doctor)}</td>
+          <td>${formatNumber(i.previous)}</td>
+          <td>${formatNumber(i.current)}</td>
+          <td class="${cls}">${sign}${formatNumber(i.difference)}</td>
+          <td class="${cls}">${sign}${i.percent.toFixed(1).replace(".",",")}%</td>
+        </tr>`;
+      }).join("");
+    }
     function renderTables(ranking, visited, lab) {
       document.querySelector("#rankingTable").innerHTML = ranking.map(i =>
         `<tr><td>${escapeHtml(i.month)}</td><td>${escapeHtml(i.solicitante)}</td><td>${escapeHtml(i.modalidade)}</td><td>${formatNumber(i.quantidade)}</td></tr>`
@@ -926,17 +1024,27 @@
       const ranking = filteredRanking();
       const visited = filteredVisited();
       const lab = filteredLab();
+      const previousProduction = filteredPreviousProduction();
+      const comparison = productionByDoctor(visited, lab, previousProduction);
       const totalRequests = ranking.reduce((s,i) => s + i.quantidade, 0);
       const imageProduction = visited.reduce((s,i) => s + i.total, 0);
       const labProduction = lab.reduce((s,i) => s + i.production, 0);
+      const previousProductionTotal = previousProduction.reduce((s,i) => s + i.production, 0);
+      const currentProductionTotal = imageProduction + labProduction;
+      const productionDifference = currentProductionTotal - previousProductionTotal;
+      const productionPercent = previousProductionTotal ? (productionDifference / previousProductionTotal) * 100 : (currentProductionTotal ? 100 : 0);
       document.querySelector("#totalRequests").textContent = formatNumber(totalRequests);
       document.querySelector("#visitedDoctors").textContent = formatNumber(new Set(visited.map(i => i.doctor)).size);
       document.querySelector("#imageProduction").textContent = formatNumber(imageProduction);
       document.querySelector("#labProduction").textContent = formatNumber(labProduction);
+      document.querySelector("#previousProduction").textContent = formatNumber(previousProductionTotal);
+      document.querySelector("#productionDelta").textContent = `${productionDifference >= 0 ? "+" : ""}${formatNumber(productionDifference)}`;
+      document.querySelector("#productionDelta").className = `metric ${productionDifference < 0 ? "negative-text" : "positive-text"}`;
+      document.querySelector("#productionDeltaPct").textContent = `${productionPercent >= 0 ? "+" : ""}${productionPercent.toFixed(1).replace(".",",")}%`;
       const prodLabel = els.month.value || "Todos os meses";
       const visitLabel = els.monthVisit.value || "Todos os meses";
       document.querySelector("#requestMonths").textContent = prodLabel === visitLabel ? prodLabel : `Prod: ${prodLabel} · Visita: ${visitLabel}`;
-      document.querySelector("#visitedReps").textContent = els.rep.value || "Representantes filtrados";
+      document.querySelector("#visitedScope").textContent = els.specialty.value || "Especialidades filtradas";
       const rankingBySolicitante = groupSum(ranking,"solicitante","quantidade");
       const rankingByModality = groupSum(ranking,"modalidade","quantidade");
       const visitedByMonth = groupSum(visited,"productionMonth","total").sort((a,b) => monthSort(a.label) - monthSort(b.label));
@@ -952,6 +1060,9 @@
       renderBars("visitedDoctorBars", groupSum(visited,"doctor","total"), "blue");
       renderBars("labBars", labByMonth, "", 12);
       renderBars("labDoctorBars", groupSum(lab,"doctor","production"));
+      renderComparisonBars("comparisonBars", comparison);
+      renderBars("comparisonCurrentBars", comparison.map(i => ({label: i.doctor, value: i.current})).sort((a,b) => b.value - a.value));
+      renderComparisonTable(comparison);
       renderTables(ranking, visited, lab);
     }
     function sheetRows(workbook, names) {
@@ -959,10 +1070,32 @@
       if (!sheetName) return [];
       return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval:""});
     }
+    function productionRowsFromSheet(rows, defaultYear = 2025) {
+      return rows.map(row => {
+        const total = parseNumber(getField(row,["Producao","Produção","ProduÃ§Ã£o","PRODUÇÃO","PRODUÃ‡ÃƒO","Total","TOTAL","Quantidade","QTD","Qtd"]));
+        const modalitiesTotal =
+          parseNumber(getField(row,["Cintilografia"])) +
+          parseNumber(getField(row,["Densitometria"])) +
+          parseNumber(getField(row,["Mamografia"])) +
+          parseNumber(getField(row,["Ressonancia","Ressonância","RessonÃ¢ncia"])) +
+          parseNumber(getField(row,["Tomografia"])) +
+          parseNumber(getField(row,["Ultrassom"]));
+        return {
+          month: monthKey(getField(row,["Mes Producao","Mês Produção","MÃªs ProduÃ§Ã£o","MÊS DA PRODUÇÃO","MÃŠS DA PRODUÃ‡ÃƒO","Mes","Mês","MÃªs","Data"]), getField(row,["Ano"]) || defaultYear),
+          doctor: String(getField(row,["Medico Solicitante","Médico Solicitante","MÃ©dico Solicitante","Solicitante","Medico","Médico","MÃ©dico","Doctor"]) || "").trim(),
+          production: total || modalitiesTotal
+        };
+      }).filter(i => i.month && i.doctor && i.production);
+    }
     function parsedStateFromWorkbook(workbook) {
       const rankingRows = sheetRows(workbook, ["Ranking_2026","Ranking 2026"]);
       const visitedRows = sheetRows(workbook, ["Visitados_2026","Comp_Visitados_2026","Comp Medicos Visitados 2026"]);
       const labRows = sheetRows(workbook, ["Laboratorio_2026","Prod_Lab_2026","Prod Lab 2026"]);
+      const previousRows = [
+        ...productionRowsFromSheet(sheetRows(workbook, ["Producao_2025","Produção_2025","Producao 2025","Produção 2025","Producao_Medicos_2025","Produção Médicos 2025"]), 2025),
+        ...productionRowsFromSheet(sheetRows(workbook, ["Visitados_2025","Comp_Visitados_2025","Comp Medicos Visitados 2025"]), 2025),
+        ...productionRowsFromSheet(sheetRows(workbook, ["Laboratorio_2025","Prod_Lab_2025","Prod Lab 2025"]), 2025)
+      ];
       const ranking = rankingRows.map(row => ({
         month: monthKey(getField(row,["Mes","Mês"]), getField(row,["Ano"])),
         solicitante: String(getField(row,["Solicitante","Medico Solicitante","Médico Solicitante"]) || "").trim(),
@@ -993,15 +1126,16 @@
         doctor: String(getField(row,["Medico Solicitante","Médico Solicitante","Solicitante"]) || "").trim(),
         production: parseNumber(getField(row,["Producao","Produção","PRODUÇÃO"]))
       })).filter(i => i.month && i.doctor);
-      return { ranking, visited, lab, totals: { ranking: rankingRows.length, visited: visitedRows.length, lab: labRows.length } };
+      return { ranking, visited, lab, previousProduction: previousRows, totals: { ranking: rankingRows.length, visited: visitedRows.length, lab: labRows.length, previous: previousRows.length } };
     }
     function applyParsedState(parsed, name) {
-      state.ranking = parsed.ranking;
-      state.visited = parsed.visited;
-      state.lab = parsed.lab;
+      state.ranking = parsed.ranking || [];
+      state.visited = parsed.visited || [];
+      state.lab = parsed.lab || [];
+      state.previousProduction = parsed.previousProduction || [];
       refreshFilters();
       render();
-      const total = parsed.ranking.length + parsed.visited.length + parsed.lab.length;
+      const total = state.ranking.length + state.visited.length + state.lab.length + state.previousProduction.length;
       els.status.textContent = `Upload ativo: ${name} — ${total} registros carregados`;
     }
 
@@ -1031,7 +1165,7 @@
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
       const parsed = parsedStateFromWorkbook(workbook);
-      const summary = `Ranking: ${parsed.totals.ranking} linhas · Visitados: ${parsed.totals.visited} linhas · Lab: ${parsed.totals.lab} linhas`;
+      const summary = `Ranking: ${parsed.totals.ranking} linhas · Visitados: ${parsed.totals.visited} linhas · Lab: ${parsed.totals.lab} linhas · 2025: ${parsed.totals.previous} linhas`;
       const entry = addUploadToHistory(file.name, parsed, summary);
       applyParsedState(parsed, file.name);
       els.status.innerHTML = `<strong>${file.name}</strong> importado. Upload ID: <strong>${entry.id}</strong>`;
@@ -1045,8 +1179,8 @@
       });
     });
 
-    [els.search, els.month, els.monthVisit, els.rep, els.specialty].forEach(c => c.addEventListener("input", render));
-    [els.month, els.monthVisit, els.rep, els.specialty].forEach(c => c.addEventListener("change", render));
+    [els.search, els.month, els.monthVisit, els.specialty].forEach(c => c.addEventListener("input", render));
+    [els.month, els.monthVisit, els.specialty].forEach(c => c.addEventListener("change", render));
     els.upload.addEventListener("change", handleUpload);
 
     // ── Inicialização: restaura upload ativo do histórico ──
