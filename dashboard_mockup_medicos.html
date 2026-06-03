@@ -777,11 +777,14 @@ function activateUpload(id) {
 }
 
 function deactivateUpload(id) {
-  const history = loadUploadHistory();
-  history.forEach(u => { if (u.id === id) u.active = false; });
-  saveUploadHistory(history);
-  applyActiveUploads(history);
-  renderHistory();
+  askUploadPassword("Digite a senha para desativar este upload:").then(ok => {
+    if (!ok) { alert("Senha incorreta. Acao cancelada."); return; }
+    const history = loadUploadHistory();
+    history.forEach(u => { if (u.id === id) u.active = false; });
+    saveUploadHistory(history);
+    applyActiveUploads(history);
+    renderHistory();
+  });
 }
 
 function deleteUpload(id) {
@@ -791,6 +794,13 @@ function deleteUpload(id) {
   saveUploadHistory(history);
   if (wasActive) applyActiveUploads(history);
   renderHistory();
+}
+
+function confirmDelete(id) {
+  askUploadPassword("Digite a senha para excluir este upload:").then(ok => {
+    if (!ok) { alert("Senha incorreta. Acao cancelada."); return; }
+    if (confirm("Excluir este upload do historico? Esta acao nao pode ser desfeita.")) deleteUpload(id);
+  });
 }
 
 function clearTableBodies() {
@@ -834,12 +844,6 @@ function renderHistory() {
       </div>
     </li>
   `).join("");
-}
-
-function confirmDelete(id) {
-  if (confirm("Excluir este upload do historico? Esta acao nao pode ser desfeita.")) {
-    deleteUpload(id);
-  }
 }
 
 // ── Helpers ──
@@ -1053,6 +1057,21 @@ function setStatus(message, isError = false) {
   uploadStatus.style.color = isError ? "var(--red)" : "var(--muted)";
 }
 
+async function askUploadPassword(message = "Digite a senha:") {
+  const password = window.prompt(message);
+  if (!password) return false;
+  try {
+    const response = await fetch("/api/check-upload-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password })
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 function normalizeService(value) {
   const n = normalize(value);
   if (n.includes("imag")) return "Imagem";
@@ -1241,7 +1260,14 @@ const uploadHistory = document.querySelector("#uploadHistory");
 if (historyTab && uploadHistory) historyTab.appendChild(uploadHistory);
 
 document.querySelectorAll(".tab").forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
+    if (btn.dataset.tab === "historico") {
+      const allowed = await askUploadPassword("Digite a senha para acessar o historico de uploads:");
+      if (!allowed) {
+        alert("Senha incorreta. Acesso cancelado.");
+        return;
+      }
+    }
     document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab === btn));
     document.querySelectorAll(".content").forEach(section => section.classList.toggle("active", section.id === `tab-${btn.dataset.tab}`));
   });
