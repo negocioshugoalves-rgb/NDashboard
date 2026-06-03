@@ -316,6 +316,39 @@
     .positive-text { color: var(--teal); font-weight: 750; }
     .negative-text { color: var(--red); font-weight: 750; }
 
+    .comparison-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .summary-panel {
+      display: grid;
+      gap: 12px;
+      min-height: auto;
+    }
+
+    .summary-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .summary-tile {
+      min-height: 86px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f8fafc;
+      display: grid;
+      gap: 6px;
+      align-content: start;
+    }
+
+    .summary-tile .metric {
+      font-size: 22px;
+    }
+
     .table-wrap {
       overflow: auto;
       max-height: 440px;
@@ -351,7 +384,7 @@
     .muted { color: var(--muted); }
 
     @media (max-width: 1100px) {
-      .cards, .grid-2, .grid-3, .full-width, .filters, .upload { grid-template-columns: 1fr; }
+      .cards, .grid-2, .grid-3, .full-width, .filters, .upload, .comparison-summary, .summary-metrics { grid-template-columns: 1fr; }
       .app { padding: 14px; }
     }
 
@@ -447,7 +480,7 @@
           <input id="excelUpload" type="file" accept=".xlsx,.xls">
           <a class="model-link" href="modelo_ranking_solicitantes_visitas_2026.xlsx" download>Baixar modelo Excel</a>
         </label>
-        <div class="status">Abas esperadas: Ranking_2026, Visitados_2026, Laboratorio_2026. Opcional: Producao_2025 no mesmo formato de Visitados_2026.</div>
+        <div class="status">Abas esperadas: Ranking_2026, Visitados_2026, Laboratorio_2026. Opcionais: Producao_2025 no formato de Visitados_2026 e Laboratorio_2025 no formato de Laboratorio_2026.</div>
       </section>
 
       <!-- Histórico de uploads -->
@@ -606,25 +639,80 @@
     </section>
 
     <section class="content" id="tab-comparativo">
-      <div class="grid-2">
-        <article class="panel">
-          <h2>Variação por médico</h2>
-          <div class="bar-list" id="comparisonBars"></div>
+      <div class="comparison-summary">
+        <article class="panel summary-panel">
+          <h2>Imagem / medicos visitados</h2>
+          <div class="summary-metrics">
+            <div class="summary-tile">
+              <div class="label">2025</div>
+              <div class="metric" id="imageCompare2025">0</div>
+            </div>
+            <div class="summary-tile">
+              <div class="label">2026</div>
+              <div class="metric" id="imageCompare2026">0</div>
+            </div>
+            <div class="summary-tile">
+              <div class="label">Diferenca</div>
+              <div class="metric" id="imageCompareDelta">0</div>
+            </div>
+            <div class="summary-tile">
+              <div class="label">Variacao</div>
+              <div class="metric" id="imageComparePct">0,0%</div>
+            </div>
+          </div>
         </article>
-        <article class="panel">
-          <h2>Top produção 2026</h2>
-          <div class="bar-list" id="comparisonCurrentBars"></div>
+        <article class="panel summary-panel">
+          <h2>Laboratorio</h2>
+          <div class="summary-metrics">
+            <div class="summary-tile">
+              <div class="label">2025</div>
+              <div class="metric" id="labCompare2025">0</div>
+            </div>
+            <div class="summary-tile">
+              <div class="label">2026</div>
+              <div class="metric" id="labCompare2026">0</div>
+            </div>
+            <div class="summary-tile">
+              <div class="label">Diferenca</div>
+              <div class="metric" id="labCompareDelta">0</div>
+            </div>
+            <div class="summary-tile">
+              <div class="label">Variacao</div>
+              <div class="metric" id="labComparePct">0,0%</div>
+            </div>
+          </div>
         </article>
       </div>
-      <article class="panel">
-        <h2>Detalhe comparativo</h2>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Médico</th><th>Imagem 2025</th><th>Imagem 2026</th><th>Diferença</th><th>Variação</th></tr></thead>
-            <tbody id="comparisonTable"></tbody>
-          </table>
-        </div>
-      </article>
+      <div class="grid-2">
+        <article class="panel">
+          <h2>Imagem por modalidade</h2>
+          <div class="bar-list" id="modalityComparisonBars"></div>
+        </article>
+        <article class="panel">
+          <h2>Laboratorio por medico</h2>
+          <div class="bar-list" id="labComparisonBars"></div>
+        </article>
+      </div>
+      <div class="grid-2">
+        <article class="panel">
+          <h2>Detalhe imagem por modalidade</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Modalidade</th><th>2025</th><th>2026</th><th>Diferenca</th><th>Variacao</th></tr></thead>
+              <tbody id="comparisonTable"></tbody>
+            </table>
+          </div>
+        </article>
+        <article class="panel">
+          <h2>Detalhe laboratorio por medico</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Medico</th><th>2025</th><th>2026</th><th>Diferenca</th><th>Variacao</th></tr></thead>
+              <tbody id="labComparisonTable"></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
     </section>
 
     <section class="content" id="tab-historico"></section>
@@ -633,7 +721,7 @@
   <script src="xlsx.full.min.js"></script>
   <script>
     // ── Estado ──
-    const state = { ranking: [], visited: [], lab: [], previousProduction: [] };
+    const state = { ranking: [], visited: [], lab: [], previousProduction: [], previousLab: [] };
 
     const els = {
       search: document.querySelector("#searchFilter"),
@@ -750,7 +838,7 @@
       return loadUploadHistory().find(u => u.active) || null;
     }
     function emptyParsedState() {
-      return { ranking: [], visited: [], lab: [], previousProduction: [] };
+      return { ranking: [], visited: [], lab: [], previousProduction: [], previousLab: [] };
     }
     function mergeParsedStates(entries) {
       return entries.reduce((merged, entry) => {
@@ -759,6 +847,7 @@
         merged.visited.push(...(parsed.visited || []));
         merged.lab.push(...(parsed.lab || []));
         merged.previousProduction.push(...(parsed.previousProduction || []));
+        merged.previousLab.push(...(parsed.previousLab || []));
         return merged;
       }, emptyParsedState());
     }
@@ -954,6 +1043,13 @@
         matchesDoctorScope(i.doctor, scope)
       );
     }
+    function filteredPreviousLab() {
+      const previousMonth = previousMonthForSelectedCurrent();
+      return state.previousLab.filter(i =>
+        (!previousMonth || i.month === previousMonth) &&
+        matchesName(i.doctor)
+      );
+    }
     function groupSum(rows, labelKey, valueKey) {
       const map = new Map();
       rows.forEach(i => map.set(i[labelKey], (map.get(i[labelKey]) || 0) + parseNumber(i[valueKey])));
@@ -971,46 +1067,77 @@
         </div>
       `).join("") : `<div class="muted">Sem dados para os filtros.</div>`;
     }
-    function productionByDoctor(visited, previousProduction) {
+    function comparisonPercent(current, previous) {
+      return previous ? ((current - previous) / previous) * 100 : (current ? 100 : 0);
+    }
+    function comparisonRows(keys, previousValues, currentValues) {
+      return keys.map(item => {
+        const previous = previousValues[item.key] || 0;
+        const current = currentValues[item.key] || 0;
+        const difference = current - previous;
+        return {
+          label: item.label,
+          previous,
+          current,
+          difference,
+          percent: comparisonPercent(current, previous)
+        };
+      }).filter(i => i.previous || i.current);
+    }
+    function modalityTotals(rows) {
+      const fields = ["cintilografia","densitometria","mamografia","ressonancia","tomografia","ultrassom"];
+      return Object.fromEntries(fields.map(field => [
+        field,
+        rows.reduce((sum, row) => sum + parseNumber(row[field]), 0)
+      ]));
+    }
+    function labComparisonByDoctor(currentRows, previousRows) {
       const map = new Map();
-      visited.forEach(i => {
-        const key = i.doctor;
-        const row = map.get(key) || { doctor: key, previous: 0, current: 0 };
-        row.current += parseNumber(i.total);
-        map.set(key, row);
+      currentRows.forEach(row => {
+        const item = map.get(row.doctor) || { label: row.doctor, previous: 0, current: 0 };
+        item.current += parseNumber(row.production);
+        map.set(row.doctor, item);
       });
-      previousProduction.forEach(i => {
-        const key = i.doctor;
-        const row = map.get(key) || { doctor: key, previous: 0, current: 0 };
-        row.previous += parseNumber(i.production);
-        map.set(key, row);
+      previousRows.forEach(row => {
+        const item = map.get(row.doctor) || { label: row.doctor, previous: 0, current: 0 };
+        item.previous += parseNumber(row.production);
+        map.set(row.doctor, item);
       });
-      return [...map.values()]
-        .map(row => {
-          const difference = row.current - row.previous;
-          const percent = row.previous ? (difference / row.previous) * 100 : (row.current ? 100 : 0);
-          return { ...row, difference, percent };
-        })
-        .sort((a,b) => Math.abs(b.difference) - Math.abs(a.difference) || b.current - a.current);
+      return [...map.values()].map(item => {
+        const difference = item.current - item.previous;
+        return { ...item, difference, percent: comparisonPercent(item.current, item.previous) };
+      }).sort((a,b) => Math.abs(b.difference) - Math.abs(a.difference) || b.current - a.current);
+    }
+    function setComparisonSummary(prefix, previous, current) {
+      const difference = current - previous;
+      const percent = comparisonPercent(current, previous);
+      const deltaClass = difference < 0 ? "negative-text" : "positive-text";
+      const pctClass = percent < 0 ? "negative-text" : "positive-text";
+      document.querySelector(`#${prefix}2025`).textContent = formatNumber(previous);
+      document.querySelector(`#${prefix}2026`).textContent = formatNumber(current);
+      document.querySelector(`#${prefix}Delta`).textContent = `${difference >= 0 ? "+" : ""}${formatNumber(difference)}`;
+      document.querySelector(`#${prefix}Delta`).className = `metric ${deltaClass}`;
+      document.querySelector(`#${prefix}Pct`).textContent = `${percent >= 0 ? "+" : ""}${percent.toFixed(1).replace(".",",")}%`;
+      document.querySelector(`#${prefix}Pct`).className = `metric ${pctClass}`;
     }
     function renderComparisonBars(id, rows, limit = 10) {
       const target = document.querySelector(`#${id}`);
       const top = rows.slice(0, limit);
       const max = Math.max(1, ...top.map(i => Math.abs(i.difference)));
       target.innerHTML = top.length ? top.map(i => `
-        <div class="bar-row" title="${escapeHtml(i.doctor)}">
-          <div class="bar-label">${escapeHtml(i.doctor)}</div>
+        <div class="bar-row" title="${escapeHtml(i.label || i.doctor)}">
+          <div class="bar-label">${escapeHtml(i.label || i.doctor)}</div>
           <div class="track"><div class="fill ${i.difference < 0 ? "red" : "blue"}" style="width:${Math.max(4,(Math.abs(i.difference)/max)*100)}%"></div></div>
           <div class="value ${i.difference < 0 ? "negative-text" : "positive-text"}">${i.difference >= 0 ? "+" : ""}${formatNumber(i.difference)}</div>
         </div>
       `).join("") : `<div class="muted">Sem dados para comparar.</div>`;
     }
-    function renderComparisonTable(rows) {
-      document.querySelector("#comparisonTable").innerHTML = rows.map(i => {
+    function renderComparisonTable(id, rows) {
+      document.querySelector(`#${id}`).innerHTML = rows.map(i => {
         const cls = i.difference < 0 ? "negative-text" : "positive-text";
         const sign = i.difference >= 0 ? "+" : "";
         return `<tr>
-          <td>${escapeHtml(i.doctor)}</td>
+          <td>${escapeHtml(i.label || i.doctor)}</td>
           <td>${formatNumber(i.previous)}</td>
           <td>${formatNumber(i.current)}</td>
           <td class="${cls}">${sign}${formatNumber(i.difference)}</td>
@@ -1036,11 +1163,22 @@
       const visited = filteredVisited();
       const lab = filteredLab();
       const previousProduction = filteredPreviousProduction();
-      const comparison = productionByDoctor(visited, previousProduction);
+      const previousLab = filteredPreviousLab();
+      const modalityKeys = [
+        {key:"cintilografia", label:"Cintilo."},
+        {key:"densitometria", label:"Densito."},
+        {key:"mamografia", label:"Mamo."},
+        {key:"ressonancia", label:"Resson."},
+        {key:"tomografia", label:"Tomo."},
+        {key:"ultrassom", label:"Ultrassom"}
+      ];
+      const modalityComparison = comparisonRows(modalityKeys, modalityTotals(previousProduction), modalityTotals(visited));
+      const labComparison = labComparisonByDoctor(lab, previousLab);
       const totalRequests = ranking.reduce((s,i) => s + i.quantidade, 0);
       const imageProduction = visited.reduce((s,i) => s + i.total, 0);
       const labProduction = lab.reduce((s,i) => s + i.production, 0);
       const previousProductionTotal = previousProduction.reduce((s,i) => s + i.production, 0);
+      const previousLabTotal = previousLab.reduce((s,i) => s + i.production, 0);
       const currentProductionTotal = imageProduction;
       const productionDifference = currentProductionTotal - previousProductionTotal;
       const productionPercent = previousProductionTotal ? (productionDifference / previousProductionTotal) * 100 : (currentProductionTotal ? 100 : 0);
@@ -1052,6 +1190,8 @@
       document.querySelector("#productionDelta").textContent = `${productionDifference >= 0 ? "+" : ""}${formatNumber(productionDifference)}`;
       document.querySelector("#productionDelta").className = `metric ${productionDifference < 0 ? "negative-text" : "positive-text"}`;
       document.querySelector("#productionDeltaPct").textContent = `${productionPercent >= 0 ? "+" : ""}${productionPercent.toFixed(1).replace(".",",")}%`;
+      setComparisonSummary("imageCompare", previousProductionTotal, imageProduction);
+      setComparisonSummary("labCompare", previousLabTotal, labProduction);
       const prodLabel = els.month.value || "Todos os meses";
       const visitLabel = els.monthVisit.value || "Todos os meses";
       document.querySelector("#requestMonths").textContent = prodLabel === visitLabel ? prodLabel : `Prod: ${prodLabel} · Visita: ${visitLabel}`;
@@ -1068,9 +1208,10 @@
       renderBars("visitedDoctorBars", groupSum(visited,"doctor","total"), "blue");
       renderBars("labBars", labByMonth, "", 12);
       renderBars("labDoctorBars", groupSum(lab,"doctor","production"));
-      renderComparisonBars("comparisonBars", comparison);
-      renderBars("comparisonCurrentBars", comparison.map(i => ({label: i.doctor, value: i.current})).sort((a,b) => b.value - a.value));
-      renderComparisonTable(comparison);
+      renderComparisonBars("modalityComparisonBars", modalityComparison, 6);
+      renderComparisonBars("labComparisonBars", labComparison);
+      renderComparisonTable("comparisonTable", modalityComparison);
+      renderComparisonTable("labComparisonTable", labComparison);
       renderTables(ranking, visited, lab);
     }
     function sheetRows(workbook, names) {
@@ -1100,15 +1241,22 @@
         };
       }).filter(i => i.month && i.doctor && i.production);
     }
+    function labRowsFromSheet(rows, defaultYear = 2025) {
+      return rows.map(row => ({
+        month: monthKey(getField(row,["Mes Producao","Mês Produção","MÃªs ProduÃ§Ã£o","MÊS DA PRODUÇÃO","MÃŠS DA PRODUÃ‡ÃƒO","Mes","Mês","MÃªs","Data"]), getField(row,["Ano"]) || defaultYear),
+        doctor: String(getField(row,["Medico Solicitante","Médico Solicitante","MÃ©dico Solicitante","Solicitante","Medico","Médico","MÃ©dico","Doctor"]) || "").trim(),
+        production: parseNumber(getField(row,["Producao","Produção","ProduÃ§Ã£o","PRODUÇÃO","PRODUÃ‡ÃƒO","Total","TOTAL","Quantidade","QTD","Qtd"]))
+      })).filter(i => i.month && i.doctor && i.production);
+    }
     function parsedStateFromWorkbook(workbook) {
       const rankingRows = sheetRows(workbook, ["Ranking_2026","Ranking 2026"]);
       const visitedRows = sheetRows(workbook, ["Visitados_2026","Comp_Visitados_2026","Comp Medicos Visitados 2026"]);
       const labRows = sheetRows(workbook, ["Laboratorio_2026","Prod_Lab_2026","Prod Lab 2026"]);
       const previousRows = [
         ...productionRowsFromSheet(sheetRows(workbook, ["Producao_2025","Produção_2025","Producao 2025","Produção 2025","Producao_Medicos_2025","Produção Médicos 2025"]), 2025),
-        ...productionRowsFromSheet(sheetRows(workbook, ["Visitados_2025","Comp_Visitados_2025","Comp Medicos Visitados 2025"]), 2025),
-        ...productionRowsFromSheet(sheetRows(workbook, ["Laboratorio_2025","Prod_Lab_2025","Prod Lab 2025"]), 2025)
+        ...productionRowsFromSheet(sheetRows(workbook, ["Visitados_2025","Comp_Visitados_2025","Comp Medicos Visitados 2025"]), 2025)
       ];
+      const previousLabRows = labRowsFromSheet(sheetRows(workbook, ["Laboratorio_2025","Prod_Lab_2025","Prod Lab 2025"]), 2025);
       const ranking = rankingRows.map(row => ({
         month: monthKey(getField(row,["Mes","Mês"]), getField(row,["Ano"])),
         solicitante: String(getField(row,["Solicitante","Medico Solicitante","Médico Solicitante"]) || "").trim(),
@@ -1139,16 +1287,17 @@
         doctor: String(getField(row,["Medico Solicitante","Médico Solicitante","Solicitante"]) || "").trim(),
         production: parseNumber(getField(row,["Producao","Produção","PRODUÇÃO"]))
       })).filter(i => i.month && i.doctor);
-      return { ranking, visited, lab, previousProduction: previousRows, totals: { ranking: rankingRows.length, visited: visitedRows.length, lab: labRows.length, previous: previousRows.length } };
+      return { ranking, visited, lab, previousProduction: previousRows, previousLab: previousLabRows, totals: { ranking: rankingRows.length, visited: visitedRows.length, lab: labRows.length, previous: previousRows.length, previousLab: previousLabRows.length } };
     }
     function applyParsedState(parsed, name) {
       state.ranking = parsed.ranking || [];
       state.visited = parsed.visited || [];
       state.lab = parsed.lab || [];
       state.previousProduction = parsed.previousProduction || [];
+      state.previousLab = parsed.previousLab || [];
       refreshFilters();
       render();
-      const total = state.ranking.length + state.visited.length + state.lab.length + state.previousProduction.length;
+      const total = state.ranking.length + state.visited.length + state.lab.length + state.previousProduction.length + state.previousLab.length;
       els.status.textContent = `Upload ativo: ${name} — ${total} registros carregados`;
     }
 
@@ -1178,7 +1327,7 @@
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
       const parsed = parsedStateFromWorkbook(workbook);
-      const summary = `Ranking: ${parsed.totals.ranking} linhas · Visitados: ${parsed.totals.visited} linhas · Lab: ${parsed.totals.lab} linhas · 2025: ${parsed.totals.previous} linhas`;
+      const summary = `Ranking: ${parsed.totals.ranking} linhas · Visitados: ${parsed.totals.visited} linhas · Lab: ${parsed.totals.lab} linhas · Imagem 2025: ${parsed.totals.previous} linhas · Lab 2025: ${parsed.totals.previousLab} linhas`;
       const entry = addUploadToHistory(file.name, parsed, summary);
       applyActiveUploads();
       els.status.innerHTML = `<strong>${file.name}</strong> importado e ativo. Upload ID: <strong>${entry.id}</strong>`;
