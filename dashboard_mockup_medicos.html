@@ -6,18 +6,21 @@
 <title>Medicos Investimento - Dashboard</title>
 <style>
 :root {
-  --bg: #f8fafc;
+  --bg: #f7fafc;
   --panel: #ffffff;
-  --line: #e2e8f0;
-  --text: #0f172a;
-  --muted: #64748b;
+  --line: #dbe4ee;
+  --text: #132033;
+  --muted: #637083;
   --teal: #0f766e;
   --blue: #2563eb;
-  --amber: #f59e0b;
+  --amber: #d97706;
   --red: #dc2626;
-  --green-soft: #ecfdf5;
-  --blue-soft: #eff6ff;
-  --amber-soft: #fffbeb;
+  --soft-teal: #ecfdf5;
+  --soft-blue: #eff6ff;
+  --soft-amber: #fffbeb;
+  --green-soft: var(--soft-teal);
+  --blue-soft: var(--soft-blue);
+  --amber-soft: var(--soft-amber);
   font-family: "Segoe UI", Arial, sans-serif;
 }
 * { box-sizing: border-box; }
@@ -28,7 +31,7 @@ body { margin: 0; background: var(--bg); color: var(--text); }
   position: sticky;
   top: 0;
   z-index: 30;
-  background: rgba(248, 250, 252, 0.96);
+  background: rgba(247, 250, 252, 0.96);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(6px);
   display: flex;
@@ -62,20 +65,20 @@ body { margin: 0; background: var(--bg); color: var(--text); }
 }
 
 /* ── Layout principal ── */
-.dashboard {
-  width: min(1280px, 100%);
+.dashboard, .app {
+  width: min(1440px, 100%);
   margin: 0 auto;
-  padding: 22px;
+  padding: 20px;
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 header { display: grid; gap: 14px; }
-.topline {
+.topline, .title-row {
   display: flex;
   align-items: end;
   justify-content: space-between;
-  gap: 18px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 h1 { margin: 0; font-size: 28px; line-height: 1.15; letter-spacing: 0; }
@@ -165,6 +168,8 @@ input:focus, select:focus { outline: 2px solid #99f6e4; border-color: var(--teal
   border-radius: 6px;
   overflow: hidden;
 }
+header > .upload-history { display: none; }
+#tab-historico .upload-history { display: block; }
 .upload-history-header {
   display: flex;
   align-items: center;
@@ -246,9 +251,31 @@ input:focus, select:focus { outline: 2px solid #99f6e4; border-color: var(--teal
 .btn-sm.delete:hover { background: #fef2f2; }
 
 /* ── Cards ── */
-.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.card { padding: 14px; min-height: 94px; display: grid; gap: 8px; }
-.metric { font-size: 26px; font-weight: 750; }
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tab {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  padding: 0 12px;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.tab.active {
+  background: var(--teal);
+  color: #fff;
+  border-color: var(--teal);
+}
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.card { padding: 14px; min-height: 92px; display: grid; gap: 8px; }
+.metric { font-size: 25px; font-weight: 760; }
 .delta {
   width: fit-content; padding: 4px 8px; border-radius: 999px;
   background: var(--green-soft); color: var(--teal);
@@ -257,7 +284,19 @@ input:focus, select:focus { outline: 2px solid #99f6e4; border-color: var(--teal
 .delta.warn { background: var(--amber-soft); color: #b45309; }
 
 /* ── Painéis principais ── */
-.main { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.content {
+  display: none;
+  gap: 12px;
+}
+.content.active {
+  display: grid;
+}
+.main, .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.full-width {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
 .panel { padding: 14px; min-height: 230px; }
 .panel h2 { margin: 0 0 12px; font-size: 15px; line-height: 1.2; }
 
@@ -293,20 +332,27 @@ input:focus, select:focus { outline: 2px solid #99f6e4; border-color: var(--teal
 
 /* ── Tabelas ── */
 .tables { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow: auto; max-height: 440px; }
 table { width: 100%; border-collapse: collapse; font-size: 12px; }
 th, td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
 th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
-th { background: var(--green-soft); color: var(--teal); font-weight: 700; }
+th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--green-soft);
+  color: var(--teal);
+  font-weight: 750;
+}
 .lab-table th { background: var(--blue-soft); color: var(--blue); }
 .negative-text { color: var(--red); font-weight: 700; }
 .positive-text { color: var(--teal); font-weight: 700; }
 .empty-state { display: none; color: var(--muted); font-size: 13px; padding: 14px 4px 2px; }
 
 @media (max-width: 1000px) {
-  .main, .tables, .cards { grid-template-columns: 1fr; }
+  .main, .grid-2, .tables, .cards { grid-template-columns: 1fr; }
   .filters, .upload-panel { grid-template-columns: 1fr 1fr; }
-  .dashboard { padding: 14px; }
+  .dashboard, .app { padding: 14px; }
 }
 @media (max-width: 620px) {
   .filters, .upload-panel { grid-template-columns: 1fr; }
@@ -328,14 +374,32 @@ th { background: var(--green-soft); color: var(--teal); font-weight: 700; }
   <span class="topbar-title">Medicos Investimento</span>
 </div>
 
-<main class="dashboard">
+<main class="app">
   <header>
-    <div class="topline">
+    <div class="title-row">
       <div>
         <h1>Medicos Investimento</h1>
         <div class="subtitle">Comparativo mensal de producao por medico, Imagem e Laboratorio</div>
       </div>
       <div class="period" id="periodLabel">Mes selecionado: Mar/2026</div>
+    </div>
+
+    <section class="upload-panel" aria-label="Importacao de dados">
+      <label>
+        <span class="label">Importar Excel</span>
+        <input id="excelUpload" type="file" accept=".xlsx,.xls">
+        <a class="model-link" href="modelo_upload_medicos_investimento.xlsx" download>Baixar modelo Excel</a>
+      </label>
+      <div class="upload-status" id="uploadStatus">Use a tabela <strong>Dados_Producao</strong> do modelo Excel.</div>
+    </section>
+
+    <div class="upload-history" id="uploadHistory">
+      <div class="upload-history-header">
+        <h3>Historico de uploads</h3>
+        <span id="activeUploadLabel" style="font-size:11px;color:var(--muted);">Nenhum upload ativo</span>
+      </div>
+      <div class="history-empty" id="historyEmpty">Nenhum upload realizado ainda. Importe um arquivo Excel acima.</div>
+      <ul class="history-list" id="historyList"></ul>
     </div>
 
     <section class="filters" aria-label="Filtros">
@@ -362,27 +426,12 @@ th { background: var(--green-soft); color: var(--teal); font-weight: 700; }
       </label>
     </section>
 
-    <!-- Upload + Histórico -->
-    <section class="upload-section" aria-label="Importacao de dados">
-      <div class="upload-panel">
-        <label>
-          <span class="label">Importar novo Excel</span>
-          <input id="excelUpload" type="file" accept=".xlsx,.xls">
-          <a class="model-link" href="modelo_upload_medicos_investimento.xlsx" download>Baixar modelo Excel</a>
-        </label>
-        <div class="upload-status" id="uploadStatus">Use a tabela <strong>Dados_Producao</strong> do modelo Excel.</div>
-      </div>
-
-      <!-- Histórico de uploads -->
-      <div class="upload-history" id="uploadHistory">
-        <div class="upload-history-header">
-          <h3>Histórico de uploads</h3>
-          <span id="activeUploadLabel" style="font-size:11px;color:var(--muted);">Nenhum upload ativo</span>
-        </div>
-        <div class="history-empty" id="historyEmpty">Nenhum upload realizado ainda. Importe um arquivo Excel acima.</div>
-        <ul class="history-list" id="historyList"></ul>
-      </div>
-    </section>
+    <nav class="tabs" aria-label="Abas do dashboard">
+      <button class="tab active" data-tab="geral">Geral</button>
+      <button class="tab" data-tab="imagem">Imagem</button>
+      <button class="tab" data-tab="laboratorio">Laboratorio</button>
+      <button class="tab" data-tab="historico">Historico de Uploads</button>
+    </nav>
   </header>
 
   <section class="cards">
@@ -408,20 +457,22 @@ th { background: var(--green-soft); color: var(--teal); font-weight: 700; }
     </article>
   </section>
 
-  <section class="main">
-    <article class="panel">
-      <h2>Diferenca mensal - Imagem</h2>
-      <div class="difference-chart" data-service="image" aria-label="Grafico de diferenca mensal"></div>
-      <div class="chart-note" id="imageChartNote">Mar/2026 destacado. Valores positivos ficam acima da linha zero; negativos ficam abaixo.</div>
-    </article>
-    <article class="panel">
-      <h2>Diferenca mensal - Laboratorio</h2>
-      <div class="difference-chart" data-service="lab" aria-label="Grafico de diferenca mensal laboratorio"></div>
-      <div class="chart-note" id="labChartNote">Mar/2026 destacado. Azul indica aumento em Laboratorio; vermelho indica queda no mes.</div>
-    </article>
+  <section class="content active" id="tab-geral">
+    <div class="grid-2">
+      <article class="panel">
+        <h2>Diferenca mensal - Imagem</h2>
+        <div class="difference-chart" data-service="image" aria-label="Grafico de diferenca mensal"></div>
+        <div class="chart-note" id="imageChartNote">Mar/2026 destacado. Valores positivos ficam acima da linha zero; negativos ficam abaixo.</div>
+      </article>
+      <article class="panel">
+        <h2>Diferenca mensal - Laboratorio</h2>
+        <div class="difference-chart" data-service="lab" aria-label="Grafico de diferenca mensal laboratorio"></div>
+        <div class="chart-note" id="labChartNote">Mar/2026 destacado. Azul indica aumento em Laboratorio; vermelho indica queda no mes.</div>
+      </article>
+    </div>
   </section>
 
-  <section class="tables">
+  <section class="content" id="tab-imagem">
     <article class="panel">
       <h2>Comparativo mensal - Imagem</h2>
       <div class="table-wrap">
@@ -434,6 +485,9 @@ th { background: var(--green-soft); color: var(--teal); font-weight: 700; }
       </div>
       <div class="empty-state" id="imageEmpty">Nenhum registro de Imagem para os filtros.</div>
     </article>
+  </section>
+
+  <section class="content" id="tab-laboratorio">
     <article class="panel">
       <h2>Comparativo mensal - Laboratorio</h2>
       <div class="table-wrap">
@@ -447,6 +501,8 @@ th { background: var(--green-soft); color: var(--teal); font-weight: 700; }
       <div class="empty-state" id="labEmpty">Nenhum registro de Laboratorio para os filtros.</div>
     </article>
   </section>
+
+  <section class="content" id="tab-historico"></section>
 </main>
 
 <script src="xlsx.full.min.js"></script>
@@ -494,17 +550,58 @@ const STORAGE_KEY = "ndash_medicos_uploads";
 const STORAGE_META_KEY = `${STORAGE_KEY}_meta`;
 const IDB_NAME = "ndash_dashboard_storage";
 const IDB_STORE = "uploadHistories";
+let uploadHistoryCache = null;
 
 function newestHistoryTime(history) {
   return Math.max(0, ...history.map(u => Number(String(u.id || "").split("_")[1]) || 0));
 }
 
 function normalizeStoragePayload(payload) {
-  if (Array.isArray(payload)) return { history: payload, updatedAt: newestHistoryTime(payload) };
+  if (Array.isArray(payload)) return { history: unpackHistory(payload), updatedAt: newestHistoryTime(payload) };
   if (payload && Array.isArray(payload.history)) {
-    return { history: payload.history, updatedAt: Number(payload.updatedAt) || newestHistoryTime(payload.history) };
+    return { history: unpackHistory(payload.history), updatedAt: Number(payload.updatedAt) || newestHistoryTime(payload.history) };
   }
   return { history: [], updatedAt: 0 };
+}
+
+function packUploadRow(row) {
+  return [row.month, row.doctor, row.service, row.previous, row.current];
+}
+
+function unpackUploadRow(row) {
+  if (Array.isArray(row)) {
+    return {
+      month: row[0],
+      doctor: row[1],
+      service: row[2],
+      previous: Number(row[3]) || 0,
+      current: Number(row[4]) || 0
+    };
+  }
+  return row;
+}
+
+function packHistory(history) {
+  return history.map(entry => ({
+    id: entry.id,
+    name: entry.name,
+    date: entry.date,
+    rowCount: entry.rowCount,
+    monthsFound: entry.monthsFound,
+    active: !!entry.active,
+    r: (entry.rows || []).map(packUploadRow)
+  }));
+}
+
+function unpackHistory(history) {
+  return history.map(entry => ({
+    ...entry,
+    rows: Array.isArray(entry.rows)
+      ? entry.rows.map(unpackUploadRow)
+      : Array.isArray(entry.r)
+        ? entry.r.map(unpackUploadRow)
+        : []
+  }));
 }
 
 function getLocalStoragePayload() {
@@ -512,11 +609,11 @@ function getLocalStoragePayload() {
   let updatedAt = 0;
   try { history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch {}
   try { updatedAt = Number(JSON.parse(localStorage.getItem(STORAGE_META_KEY) || "{}").updatedAt) || 0; } catch {}
-  return { history: Array.isArray(history) ? history : [], updatedAt: updatedAt || newestHistoryTime(history) };
+  return { history: Array.isArray(history) ? unpackHistory(history) : [], updatedAt: updatedAt || newestHistoryTime(history) };
 }
 
 function saveLocalStoragePayload(history, updatedAt) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(packHistory(history)));
   localStorage.setItem(STORAGE_META_KEY, JSON.stringify({ updatedAt }));
 }
 
@@ -566,22 +663,33 @@ async function loadServerStoragePayload() {
 }
 
 function saveServerStoragePayload(history, updatedAt) {
-  fetch("/api/upload-history", {
+  return fetch("/api/upload-history", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key: STORAGE_KEY, history, updatedAt })
-  }).catch(() => {});
+    body: JSON.stringify({ key: STORAGE_KEY, history: packHistory(history), updatedAt })
+  }).then(async response => {
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || `Falha ao salvar no servidor (${response.status})`);
+    }
+    return response.json().catch(() => ({ ok: true, updatedAt }));
+  });
 }
 
 function loadUploadHistory() {
-  return getLocalStoragePayload().history;
+  if (!uploadHistoryCache) uploadHistoryCache = getLocalStoragePayload().history;
+  return uploadHistoryCache;
 }
 
 function saveUploadHistory(history) {
   const updatedAt = Date.now();
+  uploadHistoryCache = history;
   try { saveLocalStoragePayload(history, updatedAt); } catch (err) { console.warn("Falha ao salvar no localStorage:", err); }
   saveIndexedDbPayload(history, updatedAt).catch(err => console.warn("Falha ao salvar no IndexedDB:", err));
-  saveServerStoragePayload(history, updatedAt);
+  saveServerStoragePayload(history, updatedAt).catch(err => {
+    console.warn("Falha ao salvar no servidor:", err);
+    setStatus(`Dados aplicados nesta tela, mas nao foram salvos online: ${escapeHtml(err.message)}`, true);
+  });
 }
 
 async function restorePersistedUploadHistory() {
@@ -593,18 +701,13 @@ async function restorePersistedUploadHistory() {
   const best = payloads.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
   if (!best || best.updatedAt <= localPayload.updatedAt) return;
 
+  uploadHistoryCache = best.history;
   try { saveLocalStoragePayload(best.history, best.updatedAt); } catch {}
   saveIndexedDbPayload(best.history, best.updatedAt).catch(() => {});
   saveServerStoragePayload(best.history, best.updatedAt);
   renderHistory();
 
-  const active = best.history.find(u => u.active);
-  if (active) {
-    applyUploadData(active);
-    setStatus(`Upload ativo restaurado: <strong>${escapeHtml(active.name)}</strong> (${active.rowCount} registros). ID: ${active.id}`);
-  } else {
-    clearTableBodies();
-  }
+  applyActiveUploads(best.history);
 }
 
 function generateUploadId() {
@@ -615,10 +718,29 @@ function getActiveUpload() {
   return loadUploadHistory().find(u => u.active) || null;
 }
 
+function mergeUploadRows(entries) {
+  return entries.flatMap(entry => entry.rows || []);
+}
+
+function applyActiveUploads(history = loadUploadHistory()) {
+  const activeEntries = history.filter(u => u.active);
+  if (!activeEntries.length) {
+    clearTableBodies();
+    setStatus("Nenhum upload ativo. Dashboard sem dados.");
+    return;
+  }
+
+  const mergedEntry = {
+    name: `${activeEntries.length} upload(s) ativo(s)`,
+    rows: mergeUploadRows(activeEntries),
+    rowCount: activeEntries.reduce((sum, entry) => sum + (entry.rowCount || 0), 0)
+  };
+  applyUploadData(mergedEntry);
+  setStatus(`Upload ativo: <strong>${escapeHtml(mergedEntry.name)}</strong> (${mergedEntry.rowCount} registros).`);
+}
+
 function addUploadToHistory(name, rows, monthsFound) {
   const history = loadUploadHistory();
-  // Desativa todos os anteriores
-  history.forEach(u => u.active = false);
   const entry = {
     id: generateUploadId(),
     name,
@@ -628,6 +750,11 @@ function addUploadToHistory(name, rows, monthsFound) {
     rows,
     active: true
   };
+  const existingIndex = history.findIndex(u => String(u.name).toLowerCase() === String(name).toLowerCase());
+  if (existingIndex >= 0) {
+    entry.id = history[existingIndex].id || entry.id;
+    history.splice(existingIndex, 1);
+  }
   history.unshift(entry); // Mais recente primeiro
   saveUploadHistory(history);
   return entry;
@@ -635,10 +762,9 @@ function addUploadToHistory(name, rows, monthsFound) {
 
 function activateUpload(id) {
   const history = loadUploadHistory();
-  history.forEach(u => u.active = (u.id === id));
+  history.forEach(u => { if (u.id === id) u.active = true; });
   saveUploadHistory(history);
-  const entry = history.find(u => u.id === id);
-  if (entry) applyUploadData(entry);
+  applyActiveUploads(history);
   renderHistory();
 }
 
@@ -646,10 +772,8 @@ function deactivateUpload(id) {
   const history = loadUploadHistory();
   history.forEach(u => { if (u.id === id) u.active = false; });
   saveUploadHistory(history);
-  // Limpa o dashboard
-  clearTableBodies();
+  applyActiveUploads(history);
   renderHistory();
-  setStatus("Upload desativado. O dashboard voltou ao estado padrão.");
 }
 
 function deleteUpload(id) {
@@ -657,9 +781,8 @@ function deleteUpload(id) {
   const wasActive = history.find(u => u.id === id)?.active;
   history = history.filter(u => u.id !== id);
   saveUploadHistory(history);
-  if (wasActive) clearTableBodies();
+  if (wasActive) applyActiveUploads(history);
   renderHistory();
-  if (wasActive) setStatus("Upload ativo removido. Dashboard voltou ao estado padrão.");
 }
 
 function clearTableBodies() {
@@ -673,10 +796,10 @@ function clearTableBodies() {
 
 function renderHistory() {
   const history = loadUploadHistory();
-  const active = history.find(u => u.active);
+  const activeUploads = history.filter(u => u.active);
 
-  activeUploadLabel.textContent = active
-    ? `Ativo: ${active.name} (ID: ${active.id})`
+  activeUploadLabel.textContent = activeUploads.length
+    ? `Ativos: ${activeUploads.length} upload(s)`
     : "Nenhum upload ativo";
 
   if (history.length === 0) {
@@ -706,7 +829,7 @@ function renderHistory() {
 }
 
 function confirmDelete(id) {
-  if (confirm("Excluir este upload do histórico? Esta ação não pode ser desfeita.")) {
+  if (confirm("Excluir este upload do historico? Esta acao nao pode ser desfeita.")) {
     deleteUpload(id);
   }
 }
@@ -1041,7 +1164,7 @@ function processExcelFile(file) {
 
       const monthsFound = [...new Set(parsedRows.map(r => r.month))].sort((a,b) => monthSortValue(a) - monthSortValue(b)).join(", ");
       const entry = addUploadToHistory(file.name, parsedRows, monthsFound);
-      applyUploadData(entry);
+      applyActiveUploads();
       renderHistory();
       setStatus(`<strong>${parsedRows.length} registros</strong> importados de "${escapeHtml(file.name)}" (${monthsFound}). Upload ID: <strong>${entry.id}</strong>`);
     } catch (err) {
@@ -1074,19 +1197,22 @@ document.addEventListener("click", e => {
 month.addEventListener("change", applyFilters);
 year.addEventListener("change", () => { refreshFilterOptions(); applyFilters(); });
 
+const historyTab = document.querySelector("#tab-historico");
+const uploadHistory = document.querySelector("#uploadHistory");
+if (historyTab && uploadHistory) historyTab.appendChild(uploadHistory);
+
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab === btn));
+    document.querySelectorAll(".content").forEach(section => section.classList.toggle("active", section.id === `tab-${btn.dataset.tab}`));
+  });
+});
+
 // ── Inicialização ──
 renderChartMonths();
 refreshFilterOptions();
 renderHistory();
-
-// Carrega upload ativo do histórico ao iniciar
-const activeEntry = getActiveUpload();
-if (activeEntry) {
-  applyUploadData(activeEntry);
-  setStatus(`Upload ativo: <strong>${escapeHtml(activeEntry.name)}</strong> (${activeEntry.rowCount} registros). ID: ${activeEntry.id}`);
-} else {
-  applyFilters();
-}
+applyActiveUploads();
 restorePersistedUploadHistory();
 </script>
 </body>
