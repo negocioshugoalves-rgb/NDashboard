@@ -445,7 +445,7 @@
           <input id="excelUpload" type="file" accept=".xlsx,.xls">
           <a class="model-link" href="modelo_ranking_solicitantes_visitas_2026.xlsx" download>Baixar modelo Excel</a>
         </label>
-        <div class="status">Abas esperadas: Ranking_2026, Visitados_2026, Laboratorio_2026. Opcional: Producao_2025, Visitados_2025 ou Laboratorio_2025.</div>
+        <div class="status">Abas esperadas: Ranking_2026, Visitados_2026, Laboratorio_2026. Opcional: Producao_2025 no mesmo formato de Visitados_2026.</div>
       </section>
 
       <!-- Histórico de uploads -->
@@ -504,7 +504,7 @@
         <div class="chip">Soma no periodo</div>
       </article>
       <article class="card">
-        <div class="label">Producao 2025</div>
+        <div class="label">Producao imagem 2025</div>
         <div class="metric" id="previousProduction">0</div>
         <div class="chip">Base comparativa</div>
       </article>
@@ -617,7 +617,7 @@
         <h2>Detalhe comparativo</h2>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Médico</th><th>Produção 2025</th><th>Produção 2026</th><th>Diferença</th><th>Variação</th></tr></thead>
+            <thead><tr><th>Médico</th><th>Imagem 2025</th><th>Imagem 2026</th><th>Diferença</th><th>Variação</th></tr></thead>
             <tbody id="comparisonTable"></tbody>
           </table>
         </div>
@@ -946,18 +946,12 @@
         </div>
       `).join("") : `<div class="muted">Sem dados para os filtros.</div>`;
     }
-    function productionByDoctor(visited, lab, previousProduction) {
+    function productionByDoctor(visited, previousProduction) {
       const map = new Map();
       visited.forEach(i => {
         const key = i.doctor;
         const row = map.get(key) || { doctor: key, previous: 0, current: 0 };
         row.current += parseNumber(i.total);
-        map.set(key, row);
-      });
-      lab.forEach(i => {
-        const key = i.doctor;
-        const row = map.get(key) || { doctor: key, previous: 0, current: 0 };
-        row.current += parseNumber(i.production);
         map.set(key, row);
       });
       previousProduction.forEach(i => {
@@ -1017,12 +1011,12 @@
       const visited = filteredVisited();
       const lab = filteredLab();
       const previousProduction = filteredPreviousProduction();
-      const comparison = productionByDoctor(visited, lab, previousProduction);
+      const comparison = productionByDoctor(visited, previousProduction);
       const totalRequests = ranking.reduce((s,i) => s + i.quantidade, 0);
       const imageProduction = visited.reduce((s,i) => s + i.total, 0);
       const labProduction = lab.reduce((s,i) => s + i.production, 0);
       const previousProductionTotal = previousProduction.reduce((s,i) => s + i.production, 0);
-      const currentProductionTotal = imageProduction + labProduction;
+      const currentProductionTotal = imageProduction;
       const productionDifference = currentProductionTotal - previousProductionTotal;
       const productionPercent = previousProductionTotal ? (productionDifference / previousProductionTotal) * 100 : (currentProductionTotal ? 100 : 0);
       document.querySelector("#totalRequests").textContent = formatNumber(totalRequests);
@@ -1062,16 +1056,21 @@
     function productionRowsFromSheet(rows, defaultYear = 2025) {
       return rows.map(row => {
         const total = parseNumber(getField(row,["Producao","Produção","ProduÃ§Ã£o","PRODUÇÃO","PRODUÃ‡ÃƒO","Total","TOTAL","Quantidade","QTD","Qtd"]));
-        const modalitiesTotal =
-          parseNumber(getField(row,["Cintilografia"])) +
-          parseNumber(getField(row,["Densitometria"])) +
-          parseNumber(getField(row,["Mamografia"])) +
-          parseNumber(getField(row,["Ressonancia","Ressonância","RessonÃ¢ncia"])) +
-          parseNumber(getField(row,["Tomografia"])) +
-          parseNumber(getField(row,["Ultrassom"]));
+        const modalities = {
+          cintilografia: parseNumber(getField(row,["Cintilografia","Cintilo","Cintilo."])),
+          densitometria: parseNumber(getField(row,["Densitometria","Densito","Densito."])),
+          mamografia: parseNumber(getField(row,["Mamografia","Mamo","Mamo."])),
+          ressonancia: parseNumber(getField(row,["Ressonancia","Ressonância","RessonÃ¢ncia","Resson","Resson."])),
+          tomografia: parseNumber(getField(row,["Tomografia","Tomo","Tomo."])),
+          ultrassom: parseNumber(getField(row,["Ultrassom"]))
+        };
+        const modalitiesTotal = Object.values(modalities).reduce((sum, value) => sum + value, 0);
         return {
           month: monthKey(getField(row,["Mes Producao","Mês Produção","MÃªs ProduÃ§Ã£o","MÊS DA PRODUÇÃO","MÃŠS DA PRODUÃ‡ÃƒO","Mes","Mês","MÃªs","Data"]), getField(row,["Ano"]) || defaultYear),
           doctor: String(getField(row,["Medico Solicitante","Médico Solicitante","MÃ©dico Solicitante","Solicitante","Medico","Médico","MÃ©dico","Doctor"]) || "").trim(),
+          representative: String(getField(row,["Representante"]) || "").trim(),
+          specialty: String(getField(row,["Especialidade","Especialidades"]) || "").trim(),
+          ...modalities,
           production: total || modalitiesTotal
         };
       }).filter(i => i.month && i.doctor && i.production);
