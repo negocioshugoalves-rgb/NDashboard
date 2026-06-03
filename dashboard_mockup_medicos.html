@@ -1,1284 +1,259 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Medicos Investimento - Dashboard</title>
-<style>
-:root {
-  --bg: #f7fafc;
-  --panel: #ffffff;
-  --line: #dbe4ee;
-  --text: #132033;
-  --muted: #637083;
-  --teal: #0f766e;
-  --blue: #2563eb;
-  --amber: #d97706;
-  --red: #dc2626;
-  --soft-teal: #ecfdf5;
-  --soft-blue: #eff6ff;
-  --soft-amber: #fffbeb;
-  --green-soft: var(--soft-teal);
-  --blue-soft: var(--soft-blue);
-  --amber-soft: var(--soft-amber);
-  font-family: "Segoe UI", Arial, sans-serif;
-}
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portal de Dashboards</title>
+  <style>
+    :root {
+      --bg: #08111f;
+      --panel: rgba(255, 255, 255, .94);
+      --line: rgba(226, 232, 240, .8);
+      --text: #0f172a;
+      --muted: #64748b;
+      --teal: #0f766e;
+      --blue: #2563eb;
+      --amber: #d97706;
+      --white: #f8fafc;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
 
-/* ── Topbar com botão voltar ── */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  background: rgba(247, 250, 252, 0.96);
-  border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 8px 22px;
-}
-.portal-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 34px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--teal);
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 750;
-  box-shadow: 0 1px 4px rgba(15,23,42,.08);
-  white-space: nowrap;
-  transition: background .15s, color .15s;
-}
-.portal-back:hover { background: var(--green-soft); color: var(--text); }
-.portal-back svg { width: 14px; height: 14px; flex-shrink: 0; }
-.topbar-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-}
+    * { box-sizing: border-box; }
 
-/* ── Layout principal ── */
-.dashboard, .app {
-  width: min(1440px, 100%);
-  margin: 0 auto;
-  padding: 20px;
-  display: grid;
-  gap: 14px;
-}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--white);
+      background: var(--bg) url("portal_dashboard_bg.png") center / cover no-repeat fixed;
+    }
 
-header { display: grid; gap: 14px; }
-.topline, .title-row {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-h1 { margin: 0; font-size: 28px; line-height: 1.15; letter-spacing: 0; }
-.subtitle { margin-top: 6px; color: var(--muted); font-size: 13px; }
-.period { color: var(--muted); font-size: 13px; font-weight: 600; }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, .54);
+      pointer-events: none;
+    }
 
-/* ── Filtros ── */
-.filters {
-  display: grid;
-  grid-template-columns: minmax(260px, 1.5fr) minmax(150px, .75fr) minmax(150px, .75fr);
-  gap: 10px;
-}
-.filter, .card, .panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-}
-.filter {
-  min-height: 62px;
-  padding: 8px 10px;
-  display: grid;
-  gap: 5px;
-  position: relative;
-}
-.label { color: var(--muted); font-size: 10px; text-transform: uppercase; }
-input, select {
-  width: 100%;
-  height: 32px;
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  background: #fff;
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
-  padding: 0 9px;
-}
-input:focus, select:focus { outline: 2px solid #99f6e4; border-color: var(--teal); }
+    .page {
+      position: relative;
+      z-index: 1;
+      width: min(1180px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 42px 22px;
+      display: grid;
+      align-content: center;
+      gap: 32px;
+    }
 
-.suggestions {
-  display: none;
-  position: absolute;
-  left: 10px; right: 10px; top: 58px;
-  z-index: 5;
-  max-height: 168px;
-  overflow-y: auto;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  box-shadow: 0 12px 28px rgba(15,23,42,.14);
-}
-.suggestions button {
-  width: 100%; min-height: 34px; padding: 8px 10px;
-  border: 0; border-bottom: 1px solid #f1f5f9;
-  background: #fff; color: var(--text); font: inherit;
-  font-size: 13px; text-align: left; cursor: pointer;
-}
-.suggestions button[disabled] { cursor: default; color: var(--muted); }
-.suggestions button:hover, .suggestions button:focus { outline: 0; background: var(--green-soft); color: var(--teal); }
-.suggestions button:last-child { border-bottom: 0; }
+    header {
+      max-width: 820px;
+    }
 
-/* ── Upload panel com histórico ── */
-.upload-section { display: grid; gap: 10px; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border: 1px solid rgba(255, 255, 255, .28);
+      border-radius: 999px;
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      background: rgba(15, 23, 42, .44);
+    }
 
-.upload-panel {
-  display: grid;
-  grid-template-columns: minmax(260px, 1fr) auto;
-  gap: 12px;
-  align-items: start;
-  padding: 12px 14px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-}
-.upload-panel input[type="file"] { height: auto; padding: 7px 9px; }
-.model-link {
-  display: inline-block; margin-top: 6px;
-  color: var(--teal); font-size: 12px; font-weight: 650; text-decoration: none;
-}
-.model-link:hover { text-decoration: underline; }
-.upload-status { color: var(--muted); font-size: 12px; }
-.upload-status strong { color: var(--teal); }
+    h1 {
+      margin: 18px 0 0;
+      font-size: clamp(38px, 7vw, 74px);
+      line-height: .98;
+      letter-spacing: 0;
+      max-width: 780px;
+    }
 
-/* ── Histórico de uploads ── */
-.upload-history {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  overflow: hidden;
-}
-header > .upload-history { display: none; }
-#tab-historico .upload-history { display: block; }
-.upload-history-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--line);
-  background: #f8fafc;
-}
-.upload-history-header h3 {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: .05em;
-}
-.history-empty {
-  padding: 14px;
-  color: var(--muted);
-  font-size: 12px;
-}
-.history-list { list-style: none; margin: 0; padding: 0; }
-.history-item {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--line);
-  transition: background .12s;
-}
-.history-item:last-child { border-bottom: 0; }
-.history-item.is-active { background: var(--green-soft); }
-.history-item.is-inactive { opacity: .6; }
-.history-info { display: grid; gap: 2px; }
-.history-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.history-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--teal);
-  color: #fff;
-}
-.history-badge.inactive {
-  background: #e2e8f0;
-  color: var(--muted);
-}
-.history-meta { font-size: 11px; color: var(--muted); }
-.history-actions { display: flex; gap: 6px; }
-.btn-sm {
-  min-height: 28px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 10px;
-  border-radius: 5px;
-  font-size: 11px;
-  font-weight: 700;
-  border: 1px solid var(--line);
-  cursor: pointer;
-  background: #fff;
-  color: var(--text);
-  white-space: nowrap;
-  transition: background .12s, color .12s;
-}
-.btn-sm:hover { background: var(--green-soft); color: var(--teal); border-color: var(--teal); }
-.btn-sm.activate { background: var(--teal); color: #fff; border-color: var(--teal); }
-.btn-sm.activate:hover { background: #0d6460; }
-.btn-sm.deactivate { background: #fff3cd; color: #92400e; border-color: #fcd34d; }
-.btn-sm.deactivate:hover { background: #fef3c7; }
-.btn-sm.delete { color: var(--red); border-color: #fecaca; }
-.btn-sm.delete:hover { background: #fef2f2; }
+    .lead {
+      margin: 18px 0 0;
+      max-width: 720px;
+      color: #dbeafe;
+      font-size: clamp(16px, 2vw, 20px);
+      line-height: 1.55;
+    }
 
-/* ── Cards ── */
-.tabs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.tab {
-  min-height: 36px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  padding: 0 12px;
-  color: var(--muted);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 650;
-  cursor: pointer;
-}
-.tab.active {
-  background: var(--teal);
-  color: #fff;
-  border-color: var(--teal);
-}
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-.card { padding: 14px; min-height: 92px; display: grid; gap: 8px; }
-.metric { font-size: 25px; font-weight: 760; }
-.delta {
-  width: fit-content; padding: 4px 8px; border-radius: 999px;
-  background: var(--green-soft); color: var(--teal);
-  font-size: 12px; font-weight: 650;
-}
-.delta.warn { background: var(--amber-soft); color: #b45309; }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
 
-/* ── Painéis principais ── */
-.content {
-  display: none;
-  gap: 12px;
-}
-.content.active {
-  display: grid;
-}
-.main, .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.full-width {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-.panel { padding: 14px; min-height: 230px; }
-.panel h2 { margin: 0 0 12px; font-size: 15px; line-height: 1.2; }
+    .dashboard-card {
+      min-height: 290px;
+      padding: 22px;
+      display: grid;
+      align-content: space-between;
+      gap: 22px;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(2, 6, 23, .28);
+      backdrop-filter: blur(8px);
+    }
 
-.difference-chart { display: grid; gap: 10px; min-height: 238px; padding: 4px 0 2px; }
-.month-group {
-  display: grid;
-  grid-template-columns: 46px minmax(0, 1fr) 104px;
-  gap: 10px;
-  align-items: center;
-  min-height: 34px;
-  opacity: .36;
-  transition: opacity .18s ease;
-}
-.month-group.is-selected, .month-group.is-visible { opacity: 1; }
-.month-label { color: var(--muted); font-size: 12px; font-weight: 650; text-align: right; }
-.month-group.is-selected .month-label { color: var(--text); }
-.bars {
-  height: 20px; display: grid; grid-template-columns: 1fr 1fr;
-  align-items: center; position: relative;
-  background: #f1f5f9; border-radius: 999px; overflow: hidden;
-}
-.zero-line { position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px solid #94a3b8; z-index: 2; }
-.diff-bar {
-  width: var(--w); height: 100%; position: relative; z-index: 1;
-  transition: width .18s ease, opacity .18s ease;
-}
-.diff-bar.positive { grid-column: 2; justify-self: start; background: var(--teal); border-radius: 0 999px 999px 0; }
-.diff-bar.negative { grid-column: 1; justify-self: end; background: var(--red); border-radius: 999px 0 0 999px; }
-.diff-bar.no-data { grid-column: 1 / 3; justify-self: center; width: 8px; background: var(--muted); opacity: .28; border-radius: 999px; }
-.bar-value { color: var(--text); font-size: 12px; font-weight: 750; line-height: 1.1; text-align: left; white-space: nowrap; }
-.bar-value small { display: block; color: var(--muted); font-size: 10px; font-weight: 600; }
-.chart-note { color: var(--muted); font-size: 12px; margin-top: 10px; }
+    .card-top {
+      display: grid;
+      gap: 14px;
+    }
 
-/* ── Tabelas ── */
-.tables { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.table-wrap { overflow: auto; max-height: 440px; }
-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-th, td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
-th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
-th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: var(--green-soft);
-  color: var(--teal);
-  font-weight: 750;
-}
-.lab-table th { background: var(--blue-soft); color: var(--blue); }
-.negative-text { color: var(--red); font-weight: 700; }
-.positive-text { color: var(--teal); font-weight: 700; }
-.empty-state { display: none; color: var(--muted); font-size: 13px; padding: 14px 4px 2px; }
+    .icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 800;
+    }
 
-@media (max-width: 1000px) {
-  .main, .grid-2, .tables, .cards { grid-template-columns: 1fr; }
-  .filters, .upload-panel { grid-template-columns: 1fr 1fr; }
-  .dashboard, .app { padding: 14px; }
-}
-@media (max-width: 620px) {
-  .filters, .upload-panel { grid-template-columns: 1fr; }
-  .upload-status { text-align: left; }
-  .month-group { grid-template-columns: 42px minmax(0, 1fr) 86px; }
-}
-</style>
+    .icon.teal { background: var(--teal); }
+    .icon.blue { background: var(--blue); }
+
+    h2 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .description {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill {
+      min-height: 26px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .button {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 14px;
+      border-radius: 7px;
+      color: #fff;
+      background: var(--text);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .button.teal { background: var(--teal); }
+    .button.blue { background: var(--blue); }
+
+    .secondary {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .secondary:hover { color: var(--text); }
+
+    footer {
+      color: #cbd5e1;
+      font-size: 12px;
+    }
+
+    @media (max-width: 820px) {
+      .page {
+        min-height: auto;
+        padding-top: 32px;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-card {
+        min-height: 260px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <main class="page">
+    <header>
+      <div class="eyebrow">Portal de dashboards</div>
+      <h1>Escolha o painel que voce quer analisar.</h1>
+      <p class="lead">Um ponto de entrada unico para os dashboards em HTML, com upload de Excel e atualizacao automatica dos dados dentro de cada painel.</p>
+    </header>
 
-<!-- Topbar com botão de retorno bem posicionado -->
-<div class="topbar">
-  <a class="portal-back" href="index.html">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M10 12L6 8l4-4"/>
-    </svg>
-    Voltar ao Portal
-  </a>
-  <span class="topbar-title">Medicos Investimento</span>
-</div>
+    <section class="dashboard-grid" aria-label="Dashboards disponiveis">
+      <article class="dashboard-card">
+        <div class="card-top">
+          <div class="icon teal">MI</div>
+          <div>
+            <h2>Medicos Investimento</h2>
+            <p class="description">Comparativo mensal de Imagem e Laboratorio por medico, com filtros combinaveis, upload de Excel e tabelas de variacao.</p>
+          </div>
+          <div class="meta">
+            <span class="pill">Imagem</span>
+            <span class="pill">Laboratorio</span>
+            <span class="pill">Excel upload</span>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="button teal" href="dashboard_mockup_medicos.html">Abrir dashboard</a>
+        </div>
+      </article>
 
-<main class="app">
-  <header>
-    <div class="title-row">
-      <div>
-        <h1>Medicos Investimento</h1>
-        <div class="subtitle">Comparativo mensal de producao por medico, Imagem e Laboratorio</div>
-      </div>
-      <div class="period" id="periodLabel">Mes selecionado: Mar/2026</div>
-    </div>
-
-    <section class="upload-panel" aria-label="Importacao de dados">
-      <label>
-        <span class="label">Importar Excel</span>
-        <input id="excelUpload" type="file" accept=".xlsx,.xls">
-        <a class="model-link" href="modelo_upload_medicos_investimento.xlsx" download>Baixar modelo Excel</a>
-      </label>
-      <div class="upload-status" id="uploadStatus">Use a tabela <strong>Dados_Producao</strong> do modelo Excel.</div>
+      <article class="dashboard-card">
+        <div class="card-top">
+          <div class="icon blue">RS</div>
+          <div>
+            <h2>Ranking Solicitantes e Visitas</h2>
+            <p class="description">Visao integrada de ranking, medicos visitados, laboratorio e comparativo de producao 2025 x 2026, com upload unico das bases.</p>
+          </div>
+          <div class="meta">
+            <span class="pill">Solicitantes</span>
+            <span class="pill">Visitados</span>
+            <span class="pill">Laboratorio</span>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="button blue" href="ranking-solicitantes-visitas-2026-html/index.html">Abrir dashboard</a>
+        </div>
+      </article>
     </section>
 
-    <div class="upload-history" id="uploadHistory">
-      <div class="upload-history-header">
-        <h3>Historico de uploads</h3>
-        <span id="activeUploadLabel" style="font-size:11px;color:var(--muted);">Nenhum upload ativo</span>
-      </div>
-      <div class="history-empty" id="historyEmpty">Nenhum upload realizado ainda. Importe um arquivo Excel acima.</div>
-      <ul class="history-list" id="historyList"></ul>
-    </div>
-
-    <section class="filters" aria-label="Filtros">
-      <label class="filter">
-        <span class="label">Buscar medico</span>
-        <input id="doctorSearch" type="search" placeholder="Digite 3 letras e selecione">
-        <div class="suggestions" id="doctorSuggestions"></div>
-      </label>
-      <label class="filter">
-        <span class="label">Mes</span>
-        <select id="monthFilter">
-          <option value="Mar/2026" selected>Mar/2026</option>
-          <option value="Fev/2026">Fev/2026</option>
-          <option value="Jan/2026">Jan/2026</option>
-          <option value="Todos">Todos</option>
-        </select>
-      </label>
-      <label class="filter">
-        <span class="label">Ano</span>
-        <select id="yearFilter">
-          <option>2026</option>
-          <option>2025</option>
-        </select>
-      </label>
-    </section>
-
-    <nav class="tabs" aria-label="Abas do dashboard">
-      <button class="tab active" data-tab="geral">Geral</button>
-      <button class="tab" data-tab="imagem">Imagem</button>
-      <button class="tab" data-tab="laboratorio">Laboratorio</button>
-      <button class="tab" data-tab="historico">Historico de Uploads</button>
-    </nav>
-  </header>
-
-  <section class="cards">
-    <article class="card">
-      <div class="label">Producao total</div>
-      <div class="metric" id="totalMetric">18.420</div>
-      <div class="delta" id="totalDelta">+8,4% vs mes anterior</div>
-    </article>
-    <article class="card">
-      <div class="label">Imagem</div>
-      <div class="metric" id="imageMetric">10.940</div>
-      <div class="delta" id="imageDelta">+12,1% no mes</div>
-    </article>
-    <article class="card">
-      <div class="label">Laboratorio</div>
-      <div class="metric" id="labMetric">7.480</div>
-      <div class="delta warn" id="labDelta">+3,2% no mes</div>
-    </article>
-    <article class="card">
-      <div class="label">Medicos ativos</div>
-      <div class="metric" id="doctorMetric">126</div>
-      <div class="delta" id="doctorDelta">+9 no periodo</div>
-    </article>
-  </section>
-
-  <section class="content active" id="tab-geral">
-    <div class="grid-2">
-      <article class="panel">
-        <h2>Diferenca mensal - Imagem</h2>
-        <div class="difference-chart" data-service="image" aria-label="Grafico de diferenca mensal"></div>
-        <div class="chart-note" id="imageChartNote">Mar/2026 destacado. Valores positivos ficam acima da linha zero; negativos ficam abaixo.</div>
-      </article>
-      <article class="panel">
-        <h2>Diferenca mensal - Laboratorio</h2>
-        <div class="difference-chart" data-service="lab" aria-label="Grafico de diferenca mensal laboratorio"></div>
-        <div class="chart-note" id="labChartNote">Mar/2026 destacado. Azul indica aumento em Laboratorio; vermelho indica queda no mes.</div>
-      </article>
-    </div>
-  </section>
-
-  <section class="content" id="tab-imagem">
-    <article class="panel">
-      <h2>Diferenca mensal - Imagem</h2>
-      <div class="difference-chart" data-service="image" aria-label="Grafico de diferenca mensal imagem"></div>
-    </article>
-    <article class="panel">
-      <h2>Comparativo mensal - Imagem</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Mes</th><th>Medico</th><th>Mes anterior</th><th>Mes atual</th><th>Dif.</th><th>Var. %</th></tr>
-          </thead>
-          <tbody id="imageBody"></tbody>
-        </table>
-      </div>
-      <div class="empty-state" id="imageEmpty">Nenhum registro de Imagem para os filtros.</div>
-    </article>
-  </section>
-
-  <section class="content" id="tab-laboratorio">
-    <article class="panel">
-      <h2>Diferenca mensal - Laboratorio</h2>
-      <div class="difference-chart" data-service="lab" aria-label="Grafico de diferenca mensal laboratorio"></div>
-    </article>
-    <article class="panel">
-      <h2>Comparativo mensal - Laboratorio</h2>
-      <div class="table-wrap">
-        <table class="lab-table">
-          <thead>
-            <tr><th>Mes</th><th>Medico</th><th>Mes anterior</th><th>Mes atual</th><th>Dif.</th><th>Var. %</th></tr>
-          </thead>
-          <tbody id="labBody"></tbody>
-        </table>
-      </div>
-      <div class="empty-state" id="labEmpty">Nenhum registro de Laboratorio para os filtros.</div>
-    </article>
-  </section>
-
-  <section class="content" id="tab-historico"></section>
-</main>
-
-<script src="xlsx.full.min.js"></script>
-<script>
-// ── Referências DOM ──
-const search = document.querySelector("#doctorSearch");
-const month = document.querySelector("#monthFilter");
-const year = document.querySelector("#yearFilter");
-const excelUpload = document.querySelector("#excelUpload");
-const uploadStatus = document.querySelector("#uploadStatus");
-const periodLabel = document.querySelector("#periodLabel");
-const suggestions = document.querySelector("#doctorSuggestions");
-const totalMetric = document.querySelector("#totalMetric");
-const totalDelta = document.querySelector("#totalDelta");
-const imageMetric = document.querySelector("#imageMetric");
-const imageDelta = document.querySelector("#imageDelta");
-const labMetric = document.querySelector("#labMetric");
-const labDelta = document.querySelector("#labDelta");
-const doctorMetric = document.querySelector("#doctorMetric");
-const doctorDelta = document.querySelector("#doctorDelta");
-const imageChartNote = document.querySelector("#imageChartNote");
-const labChartNote = document.querySelector("#labChartNote");
-const historyList = document.querySelector("#historyList");
-const historyEmpty = document.querySelector("#historyEmpty");
-const activeUploadLabel = document.querySelector("#activeUploadLabel");
-
-// ── Estado ──
-let selectedDoctor = "";
-let monthOrder = ["Jan/2026", "Fev/2026", "Mar/2026", "Abr/2026", "Mai/2026"];
-let doctors = [];
-const monthNames = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-const monthNameToNumber = {
-  jan:1, janeiro:1, fev:2, fevereiro:2, mar:3, marco:3, março:3,
-  abr:4, abril:4, mai:5, maio:5, jun:6, junho:6, jul:7, julho:7,
-  ago:8, agosto:8, set:9, setembro:9, out:10, outubro:10, nov:11,
-  novembro:11, dez:12, dezembro:12
-};
-
-// ── Sistema de Histórico de Uploads ──
-// Cada upload recebe um upload_id único.
-// Apenas o upload ativo é exibido no dashboard.
-// Uploads inativos ficam no histórico e podem ser reativados ou excluídos.
-
-const STORAGE_KEY = "ndash_medicos_uploads";
-const STORAGE_META_KEY = `${STORAGE_KEY}_meta`;
-const IDB_NAME = "ndash_dashboard_storage";
-const IDB_STORE = "uploadHistories";
-let uploadHistoryCache = null;
-
-function newestHistoryTime(history) {
-  return Math.max(0, ...history.map(u => Number(String(u.id || "").split("_")[1]) || 0));
-}
-
-function normalizeStoragePayload(payload) {
-  if (Array.isArray(payload)) return { history: unpackHistory(payload), updatedAt: newestHistoryTime(payload) };
-  if (payload && Array.isArray(payload.history)) {
-    return { history: unpackHistory(payload.history), updatedAt: Number(payload.updatedAt) || newestHistoryTime(payload.history) };
-  }
-  return { history: [], updatedAt: 0 };
-}
-
-function packUploadRow(row) {
-  return [row.month, row.doctor, row.service, row.previous, row.current];
-}
-
-function unpackUploadRow(row) {
-  if (Array.isArray(row)) {
-    return {
-      month: row[0],
-      doctor: row[1],
-      service: row[2],
-      previous: Number(row[3]) || 0,
-      current: Number(row[4]) || 0
-    };
-  }
-  return row;
-}
-
-function packHistory(history) {
-  return history.map(entry => ({
-    id: entry.id,
-    name: entry.name,
-    date: entry.date,
-    rowCount: entry.rowCount,
-    monthsFound: entry.monthsFound,
-    active: !!entry.active,
-    r: (entry.rows || []).map(packUploadRow)
-  }));
-}
-
-function unpackHistory(history) {
-  return history.map(entry => ({
-    ...entry,
-    rows: Array.isArray(entry.rows)
-      ? entry.rows.map(unpackUploadRow)
-      : Array.isArray(entry.r)
-        ? entry.r.map(unpackUploadRow)
-        : []
-  }));
-}
-
-function getLocalStoragePayload() {
-  let history = [];
-  let updatedAt = 0;
-  try { history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch {}
-  try { updatedAt = Number(JSON.parse(localStorage.getItem(STORAGE_META_KEY) || "{}").updatedAt) || 0; } catch {}
-  return { history: Array.isArray(history) ? unpackHistory(history) : [], updatedAt: updatedAt || newestHistoryTime(history) };
-}
-
-function saveLocalStoragePayload(history, updatedAt) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(packHistory(history)));
-  localStorage.setItem(STORAGE_META_KEY, JSON.stringify({ updatedAt }));
-}
-
-function openUploadDb() {
-  return new Promise((resolve, reject) => {
-    if (!window.indexedDB) return resolve(null);
-    const request = indexedDB.open(IDB_NAME, 1);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function loadIndexedDbPayload() {
-  const db = await openUploadDb();
-  if (!db) return { history: [], updatedAt: 0 };
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(IDB_STORE, "readonly");
-    const request = tx.objectStore(IDB_STORE).get(STORAGE_KEY);
-    request.onsuccess = () => resolve(normalizeStoragePayload(request.result));
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function saveIndexedDbPayload(history, updatedAt) {
-  const db = await openUploadDb();
-  if (!db) return;
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(IDB_STORE, "readwrite");
-    tx.objectStore(IDB_STORE).put({ history, updatedAt }, STORAGE_KEY);
-    tx.oncomplete = resolve;
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-async function loadServerStoragePayload() {
-  try {
-    const response = await fetch(`/api/upload-history?key=${encodeURIComponent(STORAGE_KEY)}`, { cache: "no-store" });
-    if (!response.ok) return { history: [], updatedAt: 0 };
-    return normalizeStoragePayload(await response.json());
-  } catch {
-    return { history: [], updatedAt: 0 };
-  }
-}
-
-function saveServerStoragePayload(history, updatedAt) {
-  return fetch("/api/upload-history", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key: STORAGE_KEY, history: packHistory(history), updatedAt })
-  }).then(async response => {
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      throw new Error(payload.error || `Falha ao salvar no servidor (${response.status})`);
-    }
-    return response.json().catch(() => ({ ok: true, updatedAt }));
-  });
-}
-
-function loadUploadHistory() {
-  if (!uploadHistoryCache) uploadHistoryCache = getLocalStoragePayload().history;
-  return uploadHistoryCache;
-}
-
-function saveUploadHistory(history) {
-  const updatedAt = Date.now();
-  uploadHistoryCache = history;
-  try { saveLocalStoragePayload(history, updatedAt); } catch (err) { console.warn("Falha ao salvar no localStorage:", err); }
-  saveIndexedDbPayload(history, updatedAt).catch(err => console.warn("Falha ao salvar no IndexedDB:", err));
-  saveServerStoragePayload(history, updatedAt).catch(err => {
-    console.warn("Falha ao salvar no servidor:", err);
-    setStatus(`Dados aplicados nesta tela, mas nao foram salvos online: ${escapeHtml(err.message)}`, true);
-  });
-}
-
-async function restorePersistedUploadHistory() {
-  const localPayload = getLocalStoragePayload();
-  const payloads = [localPayload];
-  payloads.push(await loadIndexedDbPayload().catch(() => ({ history: [], updatedAt: 0 })));
-  payloads.push(await loadServerStoragePayload());
-
-  const best = payloads.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
-  if (!best || best.updatedAt <= localPayload.updatedAt) return;
-
-  uploadHistoryCache = best.history;
-  try { saveLocalStoragePayload(best.history, best.updatedAt); } catch {}
-  saveIndexedDbPayload(best.history, best.updatedAt).catch(() => {});
-  saveServerStoragePayload(best.history, best.updatedAt);
-  renderHistory();
-
-  applyActiveUploads(best.history);
-}
-
-function generateUploadId() {
-  return "upl_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
-}
-
-function getActiveUpload() {
-  return loadUploadHistory().find(u => u.active) || null;
-}
-
-function mergeUploadRows(entries) {
-  return entries.flatMap(entry => entry.rows || []);
-}
-
-function applyActiveUploads(history = loadUploadHistory()) {
-  const activeEntries = history.filter(u => u.active);
-  if (!activeEntries.length) {
-    clearTableBodies();
-    setStatus("Nenhum upload ativo. Dashboard sem dados.");
-    return;
-  }
-
-  const mergedEntry = {
-    name: `${activeEntries.length} upload(s) ativo(s)`,
-    rows: mergeUploadRows(activeEntries),
-    rowCount: activeEntries.reduce((sum, entry) => sum + (entry.rowCount || 0), 0)
-  };
-  applyUploadData(mergedEntry);
-  setStatus(`Upload ativo: <strong>${escapeHtml(mergedEntry.name)}</strong> (${mergedEntry.rowCount} registros).`);
-}
-
-function addUploadToHistory(name, rows, monthsFound) {
-  const history = loadUploadHistory();
-  const entry = {
-    id: generateUploadId(),
-    name,
-    date: new Date().toLocaleString("pt-BR"),
-    rowCount: rows.length,
-    monthsFound,
-    rows,
-    active: true
-  };
-  const existingIndex = history.findIndex(u => String(u.name).toLowerCase() === String(name).toLowerCase());
-  if (existingIndex >= 0) {
-    entry.id = history[existingIndex].id || entry.id;
-    history.splice(existingIndex, 1);
-  }
-  history.unshift(entry); // Mais recente primeiro
-  saveUploadHistory(history);
-  return entry;
-}
-
-function activateUpload(id) {
-  const history = loadUploadHistory();
-  history.forEach(u => { if (u.id === id) u.active = true; });
-  saveUploadHistory(history);
-  applyActiveUploads(history);
-  renderHistory();
-}
-
-function deactivateUpload(id) {
-  askUploadPassword("Digite a senha para desativar este upload:").then(ok => {
-    if (!ok) { alert("Senha incorreta. Acao cancelada."); return; }
-    const history = loadUploadHistory();
-    history.forEach(u => { if (u.id === id) u.active = false; });
-    saveUploadHistory(history);
-    applyActiveUploads(history);
-    renderHistory();
-  });
-}
-
-function deleteUpload(id) {
-  let history = loadUploadHistory();
-  const wasActive = history.find(u => u.id === id)?.active;
-  history = history.filter(u => u.id !== id);
-  saveUploadHistory(history);
-  if (wasActive) applyActiveUploads(history);
-  renderHistory();
-}
-
-function confirmDelete(id) {
-  askUploadPassword("Digite a senha para excluir este upload:").then(ok => {
-    if (!ok) { alert("Senha incorreta. Acao cancelada."); return; }
-    if (confirm("Excluir este upload do historico? Esta acao nao pode ser desfeita.")) deleteUpload(id);
-  });
-}
-
-function clearTableBodies() {
-  document.querySelector("#imageBody").innerHTML = "";
-  document.querySelector("#labBody").innerHTML = "";
-  monthOrder = ["Jan/2026","Fev/2026","Mar/2026","Abr/2026","Mai/2026"];
-  renderChartMonths();
-  refreshFilterOptions();
-  applyFilters();
-}
-
-function renderHistory() {
-  const history = loadUploadHistory();
-  const activeUploads = history.filter(u => u.active);
-
-  activeUploadLabel.textContent = activeUploads.length
-    ? `Ativos: ${activeUploads.length} upload(s)`
-    : "Nenhum upload ativo";
-
-  if (history.length === 0) {
-    historyEmpty.style.display = "block";
-    historyList.innerHTML = "";
-    return;
-  }
-  historyEmpty.style.display = "none";
-
-  historyList.innerHTML = history.map(u => `
-    <li class="history-item ${u.active ? "is-active" : "is-inactive"}" data-id="${u.id}">
-      <div class="history-info">
-        <div class="history-name">
-          ${escapeHtml(u.name)}
-          <span class="history-badge ${u.active ? "" : "inactive"}">${u.active ? "ATIVO" : "INATIVO"}</span>
-        </div>
-        <div class="history-meta">
-          ID: ${u.id} &nbsp;·&nbsp; ${u.date} &nbsp;·&nbsp; ${u.rowCount} registros &nbsp;·&nbsp; Meses: ${u.monthsFound || "—"}
-        </div>
-      </div>
-      <div class="history-actions">
-        ${!u.active ? `<button class="btn-sm activate" onclick="activateUpload('${u.id}')">Ativar</button>` : `<button class="btn-sm deactivate" onclick="deactivateUpload('${u.id}')">Desativar</button>`}
-        <button class="btn-sm delete" onclick="confirmDelete('${u.id}')">Excluir</button>
-      </div>
-    </li>
-  `).join("");
-}
-
-// ── Helpers ──
-function normalize(value) {
-  return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c =>
-    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])
-  );
-}
-
-function parseNumber(value) {
-  return Number(String(value).replace(/\./g,"").replace(",",".").replace(/[^\d.-]/g,"")) || 0;
-}
-
-function formatNumber(value) {
-  return Math.round(value).toLocaleString("pt-BR");
-}
-
-function formatDelta(current, previous) {
-  const diff = current - previous;
-  const pct = previous ? (diff / previous) * 100 : 0;
-  const sign = diff >= 0 ? "+" : "";
-  return `${sign}${formatNumber(diff)} | ${sign}${pct.toFixed(1).replace(".",",")}%`;
-}
-
-function formatPercent(value) {
-  const sign = value >= 0 ? "+" : "";
-  return `${sign}${value.toFixed(1).replace(".",",")}%`;
-}
-
-function getCurrentDoctors() {
-  return [...new Set(
-    [...document.querySelectorAll("[data-doctor]")].map(r => r.dataset.doctor)
-  )].sort((a,b) => a.localeCompare(b,"pt-BR"));
-}
-
-function monthKey(monthNumber, yearNumber) {
-  return `${monthNames[monthNumber-1]}/${yearNumber}`;
-}
-
-function monthSortValue(key) {
-  const [label, yearText] = String(key).split("/");
-  const mn = monthNameToNumber[normalize(label)] || 1;
-  return Number(yearText) * 100 + mn;
-}
-
-function readRows(bodyId) {
-  return [...document.querySelectorAll(`#${bodyId} tr`)].map(row => {
-    const cells = row.querySelectorAll("td");
-    return {
-      row,
-      month: row.dataset.month,
-      doctor: row.dataset.doctor,
-      previous: parseNumber(cells[2].textContent),
-      current: parseNumber(cells[3].textContent),
-      difference: parseNumber(cells[4].textContent)
-    };
-  });
-}
-
-function matchesFilters(item, includeMonth = true) {
-  const doctorMatch = !selectedDoctor || item.doctor === selectedDoctor;
-  const monthMatch = !includeMonth || month.value === "Todos" || item.month === month.value;
-  const yearMatch = !year.value || item.month.endsWith(`/${year.value}`);
-  return doctorMatch && monthMatch && yearMatch;
-}
-
-function refreshFilterOptions() {
-  doctors = getCurrentDoctors();
-  const availableYears = [...new Set(monthOrder.map(m => m.split("/")[1]))].sort();
-  const selectedYear = year.value || availableYears[availableYears.length - 1] || "2026";
-  year.innerHTML = availableYears.map(y => `<option value="${y}">${y}</option>`).join("");
-  year.value = availableYears.includes(selectedYear) ? selectedYear : availableYears[availableYears.length-1] || "";
-
-  const availableMonths = monthOrder.filter(m => !year.value || m.endsWith(`/${year.value}`));
-  const selectedMonth = month.value;
-  month.innerHTML = [
-    ...availableMonths.map(m => `<option value="${m}">${m}</option>`),
-    '<option value="Todos">Todos</option>'
-  ].join("");
-  month.value = availableMonths.includes(selectedMonth) || selectedMonth === "Todos"
-    ? selectedMonth : availableMonths[availableMonths.length - 1] || "Todos";
-}
-
-function renderChartMonths() {
-  document.querySelectorAll(".difference-chart").forEach(chart => {
-    chart.innerHTML = monthOrder.map(m => `
-      <div class="month-group" data-chart-month="${escapeHtml(m)}">
-        <div class="bars"><div class="zero-line"></div></div>
-        <div class="month-label">${escapeHtml(m.split("/")[0])}</div>
-        <div class="bar-value"></div>
-      </div>
-    `).join("");
-  });
-}
-
-function filterRows(bodyId, emptyId, useMonth) {
-  const rows = readRows(bodyId);
-  const empty = document.querySelector(`#${emptyId}`);
-  let visible = 0;
-  rows.forEach(item => {
-    const show = matchesFilters(item, useMonth);
-    item.row.style.display = show ? "" : "none";
-    if (show) visible++;
-  });
-  empty.style.display = visible ? "none" : "block";
-}
-
-function updateSuggestions() {
-  const query = normalize(search.value.trim());
-  selectedDoctor = doctors.includes(search.value.trim()) ? search.value.trim() : "";
-  if (query.length < 3) {
-    suggestions.style.display = "none";
-    suggestions.innerHTML = "";
-    applyFilters();
-    return;
-  }
-  const matches = doctors.filter(d => normalize(d).includes(query));
-  const list = matches.length ? matches : doctors;
-  suggestions.innerHTML = matches.length
-    ? list.map(d => `<button type="button" data-doctor="${d}">${d}</button>`).join("")
-    : `<button type="button" disabled>Nenhuma correspondencia. Selecione na lista:</button>${list.map(d => `<button type="button" data-doctor="${d}">${d}</button>`).join("")}`;
-  suggestions.style.display = "block";
-  applyFilters();
-}
-
-function updateCards() {
-  const imageRows = readRows("imageBody").filter(i => matchesFilters(i));
-  const labRows = readRows("labBody").filter(i => matchesFilters(i));
-  const imageCurrent = imageRows.reduce((s,i) => s + i.current, 0);
-  const imagePrevious = imageRows.reduce((s,i) => s + i.previous, 0);
-  const labCurrent = labRows.reduce((s,i) => s + i.current, 0);
-  const labPrevious = labRows.reduce((s,i) => s + i.previous, 0);
-  const activeDoctors = new Set([...imageRows,...labRows].map(i => i.doctor));
-  const currentTotal = imageCurrent + labCurrent;
-  const previousTotal = imagePrevious + labPrevious;
-
-  totalMetric.textContent = formatNumber(currentTotal);
-  totalDelta.textContent = formatDelta(currentTotal, previousTotal);
-  imageMetric.textContent = formatNumber(imageCurrent);
-  imageDelta.textContent = formatDelta(imageCurrent, imagePrevious);
-  labMetric.textContent = formatNumber(labCurrent);
-  labDelta.textContent = formatDelta(labCurrent, labPrevious);
-  doctorMetric.textContent = selectedDoctor ? (activeDoctors.size ? "1" : "0") : formatNumber(activeDoctors.size);
-  doctorDelta.textContent = selectedDoctor || "Medicos filtrados";
-}
-
-function updateCharts() {
-  const selectedMonth = month.value;
-  updateChartBars("image", readRows("imageBody"));
-  updateChartBars("lab", readRows("labBody"));
-  document.querySelectorAll("[data-chart-month]").forEach(group => {
-    const showAll = selectedMonth === "Todos";
-    group.classList.toggle("is-selected", group.dataset.chartMonth === selectedMonth);
-    group.classList.toggle("is-visible", showAll);
-  });
-  const note = selectedMonth === "Todos" ? "Todos os meses visiveis." : `${selectedMonth} destacado.`;
-  const doctorText = selectedDoctor ? ` Medico: ${selectedDoctor}.` : " Todos os medicos.";
-  imageChartNote.textContent = `${note}${doctorText} Valores positivos ficam acima da linha zero; negativos ficam abaixo.`;
-  labChartNote.textContent = `${note}${doctorText} Azul indica aumento em Laboratorio; vermelho indica queda no mes.`;
-}
-
-function updateChartBars(service, rows) {
-  const totalsByMonth = Object.fromEntries(monthOrder.map(m => [m, {previous:0,current:0,difference:0}]));
-  rows.filter(item => {
-    const doctorMatch = !selectedDoctor || item.doctor === selectedDoctor;
-    const yearMatch = !year.value || item.month.endsWith(`/${year.value}`);
-    return doctorMatch && yearMatch;
-  }).forEach(item => {
-    if (totalsByMonth[item.month]) {
-      totalsByMonth[item.month].previous += item.previous;
-      totalsByMonth[item.month].current += item.current;
-      totalsByMonth[item.month].difference += item.difference;
-    }
-  });
-  const maxDiff = Math.max(1, ...Object.values(totalsByMonth).map(v => Math.abs(v.difference)));
-  document.querySelectorAll(`.difference-chart[data-service="${service}"] [data-chart-month]`).forEach(group => {
-    const data = totalsByMonth[group.dataset.chartMonth] || {previous:0,current:0,difference:0};
-    const value = data.difference;
-    const percent = data.previous ? (value / data.previous) * 100 : 0;
-    const width = value ? Math.max(8, Math.round((Math.abs(value) / maxDiff) * 100)) : 0;
-    const bars = group.querySelector(".bars");
-    const valueLabel = group.querySelector(".bar-value");
-    let bar = group.querySelector(".diff-bar");
-    if (!bar) { bar = document.createElement("div"); bar.className = "diff-bar"; bars.appendChild(bar); }
-    bar.classList.toggle("positive", value > 0);
-    bar.classList.toggle("negative", value < 0);
-    bar.classList.toggle("no-data", value === 0);
-    bar.style.setProperty("--w", `${width}%`);
-    bar.style.background = value < 0 ? "var(--red)" : service === "lab" ? "var(--blue)" : "var(--teal)";
-    valueLabel.innerHTML = value
-      ? `${value > 0 ? "+" : ""}${formatNumber(value)}<small>${formatPercent(percent)}</small>`
-      : `<span style="color:var(--muted);font-weight:650;">0<small>0,0%</small></span>`;
-  });
-}
-
-function applyFilters() {
-  const doctorText = selectedDoctor ? ` | Medico: ${selectedDoctor}` : "";
-  periodLabel.textContent = `Mes selecionado: ${month.value}${doctorText}`;
-  updateCards();
-  updateCharts();
-  filterRows("imageBody","imageEmpty",true);
-  filterRows("labBody","labEmpty",true);
-}
-
-function setStatus(message, isError = false) {
-  uploadStatus.innerHTML = message;
-  uploadStatus.style.color = isError ? "var(--red)" : "var(--muted)";
-}
-
-async function askUploadPassword(message = "Digite a senha:") {
-  const password = window.prompt(message);
-  if (!password) return false;
-  try {
-    const response = await fetch("/api/check-upload-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password })
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-function normalizeService(value) {
-  const n = normalize(value);
-  if (n.includes("imag")) return "Imagem";
-  if (n.includes("lab")) return "Laboratorio";
-  return "";
-}
-
-function excelDateToJSDate(value) {
-  if (value instanceof Date) return value;
-  if (typeof value === "number") {
-    const utcDays = Math.floor(value - 25569);
-    return new Date(utcDays * 86400 * 1000);
-  }
-  const parsed = new Date(value);
-  return isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function getMonthFromRecord(record) {
-  const rawYear = record.Ano ?? record.ano;
-  const rawMonth = record.Mes ?? record["Mês"] ?? record.mes;
-  let yearNumber = Number(rawYear);
-  let monthNumber = Number(rawMonth);
-  if (!monthNumber && rawMonth) monthNumber = monthNameToNumber[normalize(rawMonth)] || 0;
-  if ((!yearNumber || !monthNumber) && record.Data) {
-    const date = excelDateToJSDate(record.Data);
-    if (date) { yearNumber = date.getFullYear(); monthNumber = date.getMonth() + 1; }
-  }
-  if (!yearNumber || !monthNumber || monthNumber < 1 || monthNumber > 12) return "";
-  return monthKey(monthNumber, yearNumber);
-}
-
-function getField(record, names) {
-  const entries = Object.entries(record);
-  for (const name of names) {
-    const direct = record[name];
-    if (direct !== undefined && direct !== null && direct !== "") return direct;
-    const found = entries.find(([key]) => normalize(key) === normalize(name));
-    if (found && found[1] !== undefined && found[1] !== null && found[1] !== "") return found[1];
-  }
-  return undefined;
-}
-
-function rowHtml(monthLabel, doctorName, previous, current, difference) {
-  const percent = previous ? ((difference / previous) * 100) : 0;
-  const cls = difference < 0 ? "negative-text" : "positive-text";
-  const sign = difference >= 0 ? "+" : "";
-  return `<tr data-month="${escapeHtml(monthLabel)}" data-doctor="${escapeHtml(doctorName)}">
-    <td>${escapeHtml(monthLabel)}</td>
-    <td>${escapeHtml(doctorName)}</td>
-    <td>${formatNumber(previous)}</td>
-    <td>${formatNumber(current)}</td>
-    <td class="${cls}">${sign}${formatNumber(difference)}</td>
-    <td class="${cls}">${sign}${formatPercent(percent)}</td>
-  </tr>`;
-}
-
-function previousMonthKey(monthLabel) {
-  const [label, yearText] = String(monthLabel).split("/");
-  const monthNumber = monthNameToNumber[normalize(label)] || 0;
-  const yearNumber = Number(yearText);
-  if (!monthNumber || !yearNumber) return "";
-  const previousMonth = monthNumber === 1 ? 12 : monthNumber - 1;
-  const previousYear = monthNumber === 1 ? yearNumber - 1 : yearNumber;
-  return monthKey(previousMonth, previousYear);
-}
-
-function buildMonthlyRows(records) {
-  const totals = new Map();
-  records.forEach(record => {
-    const key = `${record.doctor}||${record.month}||${record.service}`;
-    const item = totals.get(key) || {
-      doctor: record.doctor,
-      month: record.month,
-      service: record.service,
-      current: 0
-    };
-    item.current += record.current;
-    totals.set(key, item);
-  });
-
-  return [...totals.values()].map(item => {
-    const previousMonth = previousMonthKey(item.month);
-    const previous = totals.get(`${item.doctor}||${previousMonth}||${item.service}`)?.current || 0;
-    return { ...item, previous };
-  });
-}
-
-function applyUploadData(entry) {
-  const rows = buildMonthlyRows(entry.rows || []);
-  const allMonths = [...new Set(rows.map(r => r.month))].filter(Boolean).sort((a,b) => monthSortValue(a) - monthSortValue(b));
-  monthOrder = allMonths.length ? allMonths : monthOrder;
-
-  const imageBody = document.querySelector("#imageBody");
-  const labBody = document.querySelector("#labBody");
-  imageBody.innerHTML = "";
-  labBody.innerHTML = "";
-
-  const doctorMonthData = {};
-  rows.forEach(record => {
-    const key = `${record.doctor}||${record.month}||${record.service}`;
-    if (!doctorMonthData[key]) doctorMonthData[key] = { doctor: record.doctor, month: record.month, service: record.service, previous: 0, current: 0 };
-    doctorMonthData[key].previous += record.previous;
-    doctorMonthData[key].current += record.current;
-  });
-
-  Object.values(doctorMonthData).forEach(item => {
-    const diff = item.current - item.previous;
-    const html = rowHtml(item.month, item.doctor, item.previous, item.current, diff);
-    if (item.service === "Imagem") imageBody.insertAdjacentHTML("beforeend", html);
-    else if (item.service === "Laboratorio") labBody.insertAdjacentHTML("beforeend", html);
-  });
-
-  renderChartMonths();
-  refreshFilterOptions();
-  applyFilters();
-}
-
-function processExcelFile(file) {
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      if (typeof XLSX === "undefined") {
-        setStatus("Biblioteca XLSX nao carregada. Verifique se xlsx.full.min.js esta presente.", true);
-        return;
-      }
-      const wb = XLSX.read(e.target.result, { type: "array", cellDates: false });
-      const sheetName = wb.SheetNames.find(s => normalize(s).includes("dados")) || wb.SheetNames[0];
-      const ws = wb.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(ws, { defval: "" });
-
-      if (!data.length) { setStatus("Planilha vazia ou nao reconhecida.", true); return; }
-
-      const importedRows = [];
-      data.forEach(record => {
-        const monthLabel = getMonthFromRecord(record);
-        if (!monthLabel) return;
-        const doctor = String(getField(record, ["Medico","médico","medico","Nome","nome"]) ?? "").trim();
-        if (!doctor) return;
-        const serviceRaw = getField(record, ["Servico","Serviço","servico","Tipo Servico","Tipo Serviço","Tipo_Servico","Tipo_Serviço","Tipo","tipo"]) ?? "";
-        const service = normalizeService(serviceRaw);
-        if (!service) return;
-        const current = parseNumber(getField(record, ["Mes_atual","MesAtual","mes_atual","Atual","atual","Producao","producao"]) ?? 0);
-        importedRows.push({ month: monthLabel, doctor, service, current });
-      });
-
-      const parsedRows = buildMonthlyRows(importedRows);
-      if (!parsedRows.length) { setStatus("Nenhum registro valido encontrado. Verifique o modelo.", true); return; }
-
-      const monthsFound = [...new Set(parsedRows.map(r => r.month))].sort((a,b) => monthSortValue(a) - monthSortValue(b)).join(", ");
-      const entry = addUploadToHistory(file.name, parsedRows, monthsFound);
-      applyActiveUploads();
-      renderHistory();
-      setStatus(`<strong>${parsedRows.length} registros</strong> importados de "${escapeHtml(file.name)}" (${monthsFound}). Upload ID: <strong>${entry.id}</strong>`);
-    } catch (err) {
-      setStatus(`Erro ao processar: ${err.message}`, true);
-    }
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-// ── Event listeners ──
-excelUpload.addEventListener("change", function() {
-  if (this.files[0]) processExcelFile(this.files[0]);
-});
-
-search.addEventListener("input", updateSuggestions);
-search.addEventListener("keydown", e => { if (e.key === "Escape") { suggestions.style.display = "none"; } });
-
-document.addEventListener("click", e => {
-  const btn = e.target.closest(".suggestions button");
-  if (btn && btn.dataset.doctor) {
-    search.value = btn.dataset.doctor;
-    selectedDoctor = btn.dataset.doctor;
-    suggestions.style.display = "none";
-    applyFilters();
-    return;
-  }
-  if (!suggestions.contains(e.target) && e.target !== search) suggestions.style.display = "none";
-});
-
-month.addEventListener("change", applyFilters);
-year.addEventListener("change", () => { refreshFilterOptions(); applyFilters(); });
-
-const historyTab = document.querySelector("#tab-historico");
-const uploadHistory = document.querySelector("#uploadHistory");
-if (historyTab && uploadHistory) historyTab.appendChild(uploadHistory);
-
-document.querySelectorAll(".tab").forEach(btn => {
-  btn.addEventListener("click", async () => {
-    if (btn.dataset.tab === "historico") {
-      const allowed = await askUploadPassword("Digite a senha para acessar o historico de uploads:");
-      if (!allowed) {
-        alert("Senha incorreta. Acesso cancelado.");
-        return;
-      }
-    }
-    document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab === btn));
-    document.querySelectorAll(".content").forEach(section => section.classList.toggle("active", section.id === `tab-${btn.dataset.tab}`));
-  });
-});
-
-// ── Inicialização ──
-renderChartMonths();
-refreshFilterOptions();
-renderHistory();
-applyActiveUploads();
-restorePersistedUploadHistory();
-</script>
+    <footer>Projetos mantidos separados. Esta pagina apenas centraliza o acesso.</footer>
+  </main>
 </body>
 </html>
