@@ -461,10 +461,6 @@
           <span class="label">Mês da Visita</span>
           <select id="monthVisitFilter"></select>
         </label>
-        <label class="filter">
-          <span class="label">Especialidade</span>
-          <select id="specialtyFilter"></select>
-        </label>
       </section>
 
       <nav class="tabs" aria-label="Abas do dashboard">
@@ -485,7 +481,7 @@
       <article class="card">
         <div class="label">Medicos visitados</div>
         <div class="metric" id="visitedDoctors">0</div>
-        <div class="chip" id="visitedScope">Especialidades filtradas</div>
+        <div class="chip">Medicos filtrados</div>
       </article>
       <article class="card">
         <div class="label">Producao imagem visitados</div>
@@ -555,15 +551,7 @@
     </section>
 
     <section class="content" id="tab-visitados">
-      <div class="grid-3">
-        <article class="panel">
-          <h2>Medicos por representante</h2>
-          <div class="bar-list" id="repBars"></div>
-        </article>
-        <article class="panel">
-          <h2>Producao por especialidade</h2>
-          <div class="bar-list" id="specialtyBars"></div>
-        </article>
+      <div class="grid-2">
         <article class="panel">
           <h2>Top medicos visitados</h2>
           <div class="bar-list" id="visitedDoctorBars"></div>
@@ -636,7 +624,6 @@
       search: document.querySelector("#searchFilter"),
       month: document.querySelector("#monthProdFilter"),
       monthVisit: document.querySelector("#monthVisitFilter"),
-      specialty: document.querySelector("#specialtyFilter"),
       upload: document.querySelector("#excelUpload"),
       status: document.querySelector("#status")
     };
@@ -884,16 +871,12 @@
     function refreshFilters() {
       populateSelect(els.month, allMonths(), "Todos os meses");
       populateSelect(els.monthVisit, state.visited.map(i => i.visitMonth), "Todos os meses");
-      populateSelect(els.specialty, state.visited.map(i => i.specialty), "Todas");
     }
     function matchesName(value) {
       return !els.search.value || normalize(value).includes(normalize(els.search.value));
     }
     function scopedDoctorSet() {
-      if (!els.specialty.value) return null;
-      return new Set(state.visited
-        .filter(i => !els.specialty.value || i.specialty === els.specialty.value)
-        .map(i => normalize(i.doctor)));
+      return null;
     }
     function matchesDoctorScope(name, scope) { return !scope || scope.has(normalize(name)); }
     function filteredRanking() {
@@ -910,7 +893,6 @@
         // Mês da Produção e Mês da Visita são independentes — cada um filtra só o seu campo
         (!els.month.value || i.productionMonth === els.month.value) &&
         (!els.monthVisit.value || i.visitMonth === els.monthVisit.value) &&
-        (!els.specialty.value || i.specialty === els.specialty.value) &&
         matchesName(i.doctor)
       );
     }
@@ -1044,7 +1026,6 @@
       const prodLabel = els.month.value || "Todos os meses";
       const visitLabel = els.monthVisit.value || "Todos os meses";
       document.querySelector("#requestMonths").textContent = prodLabel === visitLabel ? prodLabel : `Prod: ${prodLabel} · Visita: ${visitLabel}`;
-      document.querySelector("#visitedScope").textContent = els.specialty.value || "Especialidades filtradas";
       const rankingBySolicitante = groupSum(ranking,"solicitante","quantidade");
       const rankingByModality = groupSum(ranking,"modalidade","quantidade");
       const visitedByMonth = groupSum(visited,"productionMonth","total").sort((a,b) => monthSort(a.label) - monthSort(b.label));
@@ -1055,8 +1036,6 @@
       renderBars("labMonthBars", labByMonth, "", 12);
       renderBars("solicitanteBars", rankingBySolicitante);
       renderBars("modalityBars", rankingByModality, "amber");
-      renderBars("repBars", groupSum(visited,"representative","total"), "blue");
-      renderBars("specialtyBars", groupSum(visited,"specialty","total"), "amber");
       renderBars("visitedDoctorBars", groupSum(visited,"doctor","total"), "blue");
       renderBars("labBars", labByMonth, "", 12);
       renderBars("labDoctorBars", groupSum(lab,"doctor","production"));
@@ -1179,8 +1158,8 @@
       });
     });
 
-    [els.search, els.month, els.monthVisit, els.specialty].forEach(c => c.addEventListener("input", render));
-    [els.month, els.monthVisit, els.specialty].forEach(c => c.addEventListener("change", render));
+    [els.search, els.month, els.monthVisit].forEach(c => c.addEventListener("input", render));
+    [els.month, els.monthVisit].forEach(c => c.addEventListener("change", render));
     els.upload.addEventListener("change", handleUpload);
 
     // ── Inicialização: restaura upload ativo do histórico ──
