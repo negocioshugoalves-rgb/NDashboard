@@ -386,24 +386,6 @@ th {
       <div class="period" id="periodLabel">Mes selecionado: Mar/2026</div>
     </div>
 
-    <section class="upload-panel" aria-label="Importacao de dados">
-      <label>
-        <span class="label">Importar Excel</span>
-        <input id="excelUpload" type="file" accept=".xlsx,.xls">
-        <a class="model-link" href="modelo_upload_medicos_investimento.xlsx" download>Baixar modelo Excel</a>
-      </label>
-      <div class="upload-status" id="uploadStatus">Use a tabela <strong>Dados_Producao</strong> do modelo Excel.</div>
-    </section>
-
-    <div class="upload-history" id="uploadHistory">
-      <div class="upload-history-header">
-        <h3>Historico de uploads</h3>
-        <span id="activeUploadLabel" style="font-size:11px;color:var(--muted);">Nenhum upload ativo</span>
-      </div>
-      <div class="history-empty" id="historyEmpty">Nenhum upload realizado ainda. Importe um arquivo Excel acima.</div>
-      <ul class="history-list" id="historyList"></ul>
-    </div>
-
     <section class="filters" aria-label="Filtros">
       <label class="filter">
         <span class="label">Buscar medico</span>
@@ -512,7 +494,25 @@ th {
     </article>
   </section>
 
-  <section class="content" id="tab-historico"></section>
+  <section class="content" id="tab-historico">
+    <section class="upload-panel" aria-label="Importacao de dados">
+      <label>
+        <span class="label">Importar Excel</span>
+        <input id="excelUpload" type="file" accept=".xlsx,.xls">
+        <a class="model-link" href="modelo_upload_medicos_investimento.xlsx" download>Baixar modelo Excel</a>
+      </label>
+      <div class="upload-status" id="uploadStatus">Use a tabela <strong>Dados_Producao</strong> do modelo Excel.</div>
+    </section>
+
+    <div class="upload-history" id="uploadHistory">
+      <div class="upload-history-header">
+        <h3>Historico de uploads</h3>
+        <span id="activeUploadLabel" style="font-size:11px;color:var(--muted);">Nenhum upload ativo</span>
+      </div>
+      <div class="history-empty" id="historyEmpty">Nenhum upload realizado ainda. Importe um arquivo Excel acima.</div>
+      <ul class="history-list" id="historyList"></ul>
+    </div>
+  </section>
 </main>
 
 <script src="xlsx.full.min.js"></script>
@@ -1265,10 +1265,6 @@ month.addEventListener("change", applyFilters);
 year.addEventListener("change", () => { refreshFilterOptions(); applyFilters(); });
 
 const historyTab = document.querySelector("#tab-historico");
-const uploadPanel = document.querySelector(".upload-panel");
-const uploadHistory = document.querySelector("#uploadHistory");
-if (historyTab && uploadPanel) historyTab.appendChild(uploadPanel);
-if (historyTab && uploadHistory) historyTab.appendChild(uploadHistory);
 
 document.querySelectorAll(".tab").forEach(btn => {
   btn.addEventListener("click", async () => {
