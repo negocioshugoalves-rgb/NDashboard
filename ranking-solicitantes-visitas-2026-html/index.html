@@ -362,6 +362,8 @@
       border-radius: 6px;
       overflow: hidden;
     }
+    header > .upload-history { display: none; }
+    #tab-historico .upload-history { display: block; }
     .upload-history-header {
       display: flex;
       align-items: center;
@@ -479,6 +481,7 @@
         <button class="tab" data-tab="visitados">Medicos Visitados</button>
         <button class="tab" data-tab="laboratorio">Laboratorio</button>
         <button class="tab" data-tab="comparativo">Comparativo 2025 x 2026</button>
+        <button class="tab" data-tab="historico">Historico de Uploads</button>
       </nav>
     </header>
 
@@ -623,6 +626,8 @@
         </div>
       </article>
     </section>
+
+    <section class="content" id="tab-historico"></section>
   </main>
 
   <script src="xlsx.full.min.js"></script>
@@ -736,13 +741,7 @@
       saveIndexedDbPayload(best.history, best.updatedAt).catch(() => {});
       saveServerStoragePayload(best.history, best.updatedAt);
       renderHistory();
-      const active = best.history.find(u => u.active);
-      if (active) {
-        applyParsedState(active.parsedState, active.name);
-      } else {
-        state.ranking = []; state.visited = []; state.lab = []; state.previousProduction = [];
-        refreshFilters(); render();
-      }
+      applyActiveUploads(best.history);
     }
     function generateUploadId() {
       return "upl_" + Date.now() + "_" + Math.random().toString(36).slice(2,7);
@@ -750,20 +749,46 @@
     function getActiveUpload() {
       return loadUploadHistory().find(u => u.active) || null;
     }
+    function emptyParsedState() {
+      return { ranking: [], visited: [], lab: [], previousProduction: [] };
+    }
+    function mergeParsedStates(entries) {
+      return entries.reduce((merged, entry) => {
+        const parsed = entry.parsedState || {};
+        merged.ranking.push(...(parsed.ranking || []));
+        merged.visited.push(...(parsed.visited || []));
+        merged.lab.push(...(parsed.lab || []));
+        merged.previousProduction.push(...(parsed.previousProduction || []));
+        return merged;
+      }, emptyParsedState());
+    }
+    function applyActiveUploads(history = loadUploadHistory()) {
+      const activeEntries = history.filter(u => u.active);
+      if (!activeEntries.length) {
+        applyParsedState(emptyParsedState(), "Nenhum upload ativo");
+        els.status.textContent = "Nenhum upload ativo. Dashboard sem dados.";
+        return;
+      }
+      const merged = mergeParsedStates(activeEntries);
+      applyParsedState(merged, `${activeEntries.length} upload(s) ativo(s)`);
+    }
     function addUploadToHistory(name, parsedState, summary) {
       const history = loadUploadHistory();
-      history.forEach(u => u.active = false);
       const entry = { id: generateUploadId(), name, date: new Date().toLocaleString("pt-BR"), summary, parsedState, active: true };
+      const existingIndex = history.findIndex(u => String(u.name).toLowerCase() === String(name).toLowerCase());
+      if (existingIndex >= 0) {
+        entry.id = history[existingIndex].id || entry.id;
+        history.splice(existingIndex, 1);
+      }
       history.unshift(entry);
       saveUploadHistory(history);
       return entry;
     }
     function activateUpload(id) {
       const history = loadUploadHistory();
-      history.forEach(u => u.active = (u.id === id));
+      history.forEach(u => { if (u.id === id) u.active = true; });
       saveUploadHistory(history);
-      const entry = history.find(u => u.id === id);
-      if (entry) applyParsedState(entry.parsedState, entry.name);
+      applyActiveUploads(history);
       renderHistory();
     }
     function deactivateUpload(id) {
@@ -772,9 +797,7 @@
         const history = loadUploadHistory();
         history.forEach(u => { if (u.id === id) u.active = false; });
         saveUploadHistory(history);
-        state.ranking = []; state.visited = []; state.lab = []; state.previousProduction = [];
-        refreshFilters(); render();
-        els.status.textContent = "Upload desativado. Dashboard sem dados.";
+        applyActiveUploads(history);
         renderHistory();
       });
     }
@@ -783,7 +806,7 @@
       const wasActive = history.find(u => u.id === id)?.active;
       history = history.filter(u => u.id !== id);
       saveUploadHistory(history);
-      if (wasActive) { state.ranking=[]; state.visited=[]; state.lab=[]; state.previousProduction=[]; refreshFilters(); render(); els.status.textContent="Upload ativo removido."; }
+      if (wasActive) applyActiveUploads(history);
       renderHistory();
     }
     function confirmDelete(id) {
@@ -794,8 +817,10 @@
     }
     function renderHistory() {
       const history = loadUploadHistory();
-      const active = history.find(u => u.active);
-      document.querySelector("#activeUploadLabel").textContent = active ? `Ativo: ${active.name} (ID: ${active.id})` : "Nenhum upload ativo";
+      const activeUploads = history.filter(u => u.active);
+      document.querySelector("#activeUploadLabel").textContent = activeUploads.length
+        ? `Ativos: ${activeUploads.length} upload(s)`
+        : "Nenhum upload ativo";
       if (history.length === 0) {
         document.querySelector("#historyEmpty").style.display = "block";
         document.querySelector("#historyList").innerHTML = "";
@@ -1155,10 +1180,14 @@
       const parsed = parsedStateFromWorkbook(workbook);
       const summary = `Ranking: ${parsed.totals.ranking} linhas · Visitados: ${parsed.totals.visited} linhas · Lab: ${parsed.totals.lab} linhas · 2025: ${parsed.totals.previous} linhas`;
       const entry = addUploadToHistory(file.name, parsed, summary);
-      applyParsedState(parsed, file.name);
-      els.status.innerHTML = `<strong>${file.name}</strong> importado. Upload ID: <strong>${entry.id}</strong>`;
+      applyActiveUploads();
+      els.status.innerHTML = `<strong>${file.name}</strong> importado e ativo. Upload ID: <strong>${entry.id}</strong>`;
       renderHistory();
     }
+
+    const historyTab = document.querySelector("#tab-historico");
+    const uploadHistory = document.querySelector("#uploadHistory");
+    if (historyTab && uploadHistory) historyTab.appendChild(uploadHistory);
 
     document.querySelectorAll(".tab").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -1173,13 +1202,7 @@
 
     // ── Inicialização: restaura upload ativo do histórico ──
     renderHistory();
-    const activeEntry = getActiveUpload();
-    if (activeEntry) {
-      applyParsedState(activeEntry.parsedState, activeEntry.name);
-    } else {
-      refreshFilters();
-      render();
-    }
+    applyActiveUploads();
     restorePersistedUploadHistory();
   </script>
 </body>
