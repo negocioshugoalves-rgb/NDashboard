@@ -6,7 +6,10 @@ function sendJson(response, status, payload) {
 
 function getSupabaseConfig() {
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_KEY ||
+    process.env.SUPABASE_SECRET_KEY;
   if (!url || !key) return null;
   return { url: url.replace(/\/$/, ""), key };
 }
@@ -36,7 +39,7 @@ async function readPayload(request) {
 async function supabaseRequest(path, options = {}) {
   const config = getSupabaseConfig();
   if (!config) {
-    const error = new Error("Variaveis SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY nao configuradas.");
+    const error = new Error("Variaveis SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY/SUPABASE_SECRET_KEY nao configuradas.");
     error.status = 500;
     throw error;
   }
@@ -85,10 +88,10 @@ export default async function handler(request, response) {
       }
 
       const updatedAt = Number(payload.updatedAt) || Date.now();
-      await supabaseRequest(TABLE_NAME, {
+      await supabaseRequest(`${TABLE_NAME}?on_conflict=key`, {
         method: "POST",
         headers: {
-          Prefer: "resolution=merge-duplicates"
+          Prefer: "resolution=merge-duplicates,return=minimal"
         },
         body: JSON.stringify({
           key: payload.key,
