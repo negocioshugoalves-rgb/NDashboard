@@ -396,7 +396,9 @@
       overflow: hidden;
     }
     header > .upload-history { display: none; }
+    header > .upload { display: none; }
     #tab-historico .upload-history { display: block; }
+    #tab-historico .upload { display: grid; }
     .upload-history-header {
       display: flex;
       align-items: center;
@@ -1335,7 +1337,9 @@
     }
 
     const historyTab = document.querySelector("#tab-historico");
+    const uploadPanel = document.querySelector(".upload");
     const uploadHistory = document.querySelector("#uploadHistory");
+    if (historyTab && uploadPanel) historyTab.appendChild(uploadPanel);
     if (historyTab && uploadHistory) historyTab.appendChild(uploadHistory);
 
     document.querySelectorAll(".tab").forEach(btn => {
