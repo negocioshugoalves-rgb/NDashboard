@@ -1152,7 +1152,7 @@ function processExcelFile(file) {
         if (!monthLabel) return;
         const doctor = String(getField(record, ["Medico","médico","medico","Nome","nome"]) ?? "").trim();
         if (!doctor) return;
-        const serviceRaw = getField(record, ["Servico","Serviço","servico","Tipo","tipo"]) ?? "";
+        const serviceRaw = getField(record, ["Servico","Serviço","servico","Tipo Servico","Tipo Serviço","Tipo_Servico","Tipo_Serviço","Tipo","tipo"]) ?? "";
         const service = normalizeService(serviceRaw);
         if (!service) return;
         const previous = parseNumber(getField(record, ["Mes_anterior","MesAnterior","mes_anterior","Anterior","anterior"]) ?? 0);
